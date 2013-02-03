@@ -59,4 +59,7 @@ object Rng {
 
   def nextLong: Rng[Long] =
     Rng(Suspend(NextLong(Return(_))))
+
+  def insert[A](a: A): Rng[A] =
+    Rng(Return(a))
 }
