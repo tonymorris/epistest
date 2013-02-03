@@ -3,6 +3,9 @@ package org.epistest
 sealed trait Gen[-A, +B] {
   val value: A => Rng[B]
 
+  def apply(a: A): Rng[B] =
+    value(a)
+
   def map[X](f: B => X): Gen[A, X] =
     Gen(value(_) map f)
 
