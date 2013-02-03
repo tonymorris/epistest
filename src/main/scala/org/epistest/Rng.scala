@@ -35,6 +35,17 @@ sealed trait Rng[+A] {
       case RngTerm(a) =>
         Return(a)
     }
+
+  def mapr(f: RngOp ~> RngOp): Rng[A] =
+    Rng(resume match {
+      case RngCont(q) =>
+        Suspend(f(q map (_.free)))
+      case RngTerm(a) =>
+        Return(a)
+    })
+
+  def go[AA >: A](f: RngOp[Rng[AA]] => Rng[AA]): AA =
+    free.go[AA](r => f(r map (Rng(_))).free)
 }
 
 object Rng {
