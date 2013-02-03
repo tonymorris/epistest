@@ -1,0 +1,13 @@
+*~
+*#*
+
+# Intellij IDEA
+.idea
+.idea_modules
+
+# ctags
+TAGS
+
+# sbt
+/project
+/target
