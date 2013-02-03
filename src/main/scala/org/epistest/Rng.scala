@@ -27,6 +27,14 @@ sealed trait Rng[+A] {
       case RngTerm(a) =>
         a
     }
+
+  def maph[G[+_]](f: RngOp ~> G)(implicit G: Functor[G]): Free[G, A] =
+    resume match {
+      case RngCont(q) =>
+        Suspend(f(q map (r => Rng(r.free) maph f)))
+      case RngTerm(a) =>
+        Return(a)
+    }
 }
 
 object Rng {
