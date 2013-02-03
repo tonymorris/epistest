@@ -23,6 +23,9 @@ sealed trait Gen[-A, +B] {
   def resume(a: A): RngResume[B] =
     value(a).resume
 
+  def run(a: A, r: java.util.Random = new java.util.Random()): B =
+    value(a).run(r)
+
   def mapr(f: RngOp ~> RngOp): Gen[A, B] =
     Gen(value(_) mapr f)
 
