@@ -16,4 +16,7 @@ object Gen {
     new Gen[A, B] {
       val value = v
     }
+
+  def insert[A, B](b: => B): Gen[A, B] =
+    apply(_ => Rng.insert(b))
 }
