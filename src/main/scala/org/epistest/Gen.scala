@@ -23,6 +23,7 @@ sealed trait Gen[-A, +B] {
   def resume(a: A): RngResume[B] =
     value(a).resume
 
+  // CAUTION: unsafe
   def run(a: A, r: java.util.Random = new java.util.Random()): B =
     value(a).run(r)
 

@@ -23,6 +23,7 @@ sealed trait Rng[+A] {
       case \/-(x) => RngTerm(x)
     }
 
+  // CAUTION: unsafe
   @annotation.tailrec
   final def run(r: java.util.Random = new java.util.Random()): A =
     resume match {
