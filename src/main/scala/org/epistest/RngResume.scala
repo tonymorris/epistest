@@ -34,6 +34,12 @@ sealed trait RngResume[+A] {
       case RngTerm(x) =>
         None
     }
+
+  def contLong(l: => Long) =
+    cont flatMap (_ runLong l)
+
+  def contDouble(d: => Double) =
+    cont flatMap (_ runDouble d)
 }
 case class RngCont[+A](x: RngOp[Rng[A]]) extends RngResume[A]
 case class RngTerm[+A](x: A) extends RngResume[A]
