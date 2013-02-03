@@ -1,5 +1,7 @@
 package org.epistest
 
+import scalaz._
+
 sealed trait Gen[-A, +B] {
   val value: A => Rng[B]
 
@@ -11,6 +13,18 @@ sealed trait Gen[-A, +B] {
 
   def flatMap[AA <: A, X](f: B => Gen[AA, X]): Gen[AA, X] =
     Gen(a => value(a) flatMap (b => f(b) value a))
+
+  def zip[AA <: A, X](q: Gen[AA, X]): Gen[AA, (B, X)] =
+    for {
+      b <- this
+      x <- q
+    } yield (b, x)
+
+  def resume(a: A): RngResume[B] =
+    value(a).resume
+
+  def mapr(f: RngOp ~> RngOp): Gen[A, B] =
+    Gen(value(_) mapr f)
 
 }
 

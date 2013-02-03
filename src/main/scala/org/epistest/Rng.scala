@@ -11,6 +11,12 @@ sealed trait Rng[+A] {
   def flatMap[B](f: A => Rng[B]): Rng[B] =
     Rng(free flatMap (f(_).free))
 
+  def zip[X](q: Rng[X]): Rng[(A, X)] =
+    for {
+      a <- this
+      x <- q
+    } yield (a, x)
+
   def resume: RngResume[A] =
     free.resume match {
       case -\/(x) => RngCont(x map (Rng(_)))
