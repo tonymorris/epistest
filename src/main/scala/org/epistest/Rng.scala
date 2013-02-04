@@ -58,6 +58,9 @@ sealed trait Rng[+A] {
 
   def go[AA >: A](f: RngOp[Rng[AA]] => Rng[AA]): AA =
     free.go[AA](r => f(r map (Rng(_))).free)
+
+  def gen[X]: Gen[X, A] =
+    Gen(_ => this)
 }
 
 object Rng {

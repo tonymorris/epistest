@@ -35,6 +35,12 @@ sealed trait Gen[-A, +B] {
   def mapr(f: RngOp ~> RngOp): Gen[A, B] =
     Gen(value(_) mapr f)
 
+  def mapRng[X](f: Rng[B] => Rng[X]): Gen[A, X] =
+    Gen(f compose value)
+
+  def flatMapRng[AA <: A, X](f: Rng[B] => Gen[AA, X]): Gen[AA, X] =
+    Gen(a => f(value(a)) value a)
+
 }
 
 object Gen {
