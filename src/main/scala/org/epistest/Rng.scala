@@ -1,6 +1,6 @@
 package org.epistest
 
-import scalaz._, Free._
+import scalaz._, Free._, Scalaz._
 
 sealed trait Rng[+A] {
   val free: Free[RngOp, A]
@@ -11,11 +11,23 @@ sealed trait Rng[+A] {
   def flatMap[B](f: A => Rng[B]): Rng[B] =
     Rng(free flatMap (f(_).free))
 
+  def ap[X](f: Rng[A => X]): Rng[X] =
+    for {
+      ff <- f
+      aa <- this
+    } yield ff(aa)
+
   def zip[X](q: Rng[X]): Rng[(A, X)] =
     for {
       a <- this
       x <- q
     } yield (a, x)
+
+  def zap[G[+_], B](fs: Cofree[G, A => B])(implicit G: Functor[G], d: Zap[RngOp, G]): B =
+    free.zap(fs)
+
+  def foldRun[B, AA >: A](b: B)(f: (B, RngOp[Rng[AA]]) => (B, Rng[AA])): (B, AA) =
+    free.foldRun[B, AA](b)((bb, t) => f(bb, t map (Rng(_))) :-> (_.free))
 
   def resume: RngResume[A] =
     free.resume match {

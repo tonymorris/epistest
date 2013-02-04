@@ -14,6 +14,12 @@ sealed trait Gen[-A, +B] {
   def flatMap[AA <: A, X](f: B => Gen[AA, X]): Gen[AA, X] =
     Gen(a => value(a) flatMap (b => f(b) value a))
 
+  def ap[AA <: A, X](f: Gen[AA, B => X]): Gen[AA, X] =
+    for {
+      ff <- f
+      aa <- this
+    } yield ff(aa)
+
   def zip[AA <: A, X](q: Gen[AA, X]): Gen[AA, (B, X)] =
     for {
       b <- this
