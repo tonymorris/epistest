@@ -36,16 +36,20 @@ sealed trait Rng[+A] {
     }
 
   // CAUTION: unsafe
-  @annotation.tailrec
-  final def run(r: java.util.Random = new java.util.Random()): A =
-    resume match {
-      case RngCont(NextDouble(q)) =>
-        q(r.nextDouble) run r
-      case RngCont(NextLong(q)) =>
-        q(r.nextLong) run r
-      case RngTerm(a) =>
-        a
-    }
+  final def run: A = {
+    @annotation.tailrec
+    def loop(g: Rng[A], r: java.util.Random): A =
+      resume match {
+        case RngCont(NextDouble(q)) =>
+          loop(q(r.nextDouble), r)
+        case RngCont(NextLong(q)) =>
+          loop(q(r.nextLong), r)
+        case RngTerm(a) =>
+          a
+      }
+
+    loop(this, new java.util.Random)
+  }
 
   def maph[G[+_]](f: RngOp ~> G)(implicit G: Functor[G]): Free[G, A] =
     resume match {
