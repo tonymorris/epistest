@@ -35,7 +35,6 @@ sealed trait Rng[+A] {
       case \/-(x) => RngTerm(x)
     }
 
-  // CAUTION: unsafe
   def run: A = {
     @annotation.tailrec
     def loop(g: Rng[A], r: java.util.Random): A =

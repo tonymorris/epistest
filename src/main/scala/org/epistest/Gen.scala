@@ -29,7 +29,6 @@ sealed trait Gen[-A, +B] {
   def resume(a: A): RngResume[B] =
     value(a).resume
 
-  // CAUTION: unsafe
   def run(a: A): B =
     value(a).run
 
