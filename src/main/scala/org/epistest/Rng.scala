@@ -70,10 +70,10 @@ object Rng {
     }
 
   def nextDouble: Rng[Double] =
-    Rng(Suspend(NextDouble(Return(_))))
+    NextDouble(x => x).lift
 
   def nextLong: Rng[Long] =
-    Rng(Suspend(NextLong(Return(_))))
+    NextLong(x => x).lift
 
   def insert[A](a: A): Rng[A] =
     Rng(Return(a))
