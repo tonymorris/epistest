@@ -52,20 +52,10 @@ sealed trait Rng[+A] {
   }
 
   def maph[G[+_]](f: RngOp ~> G)(implicit G: Functor[G]): Free[G, A] =
-    resume match {
-      case RngCont(q) =>
-        Suspend(f(q map (r => Rng(r.free) maph f)))
-      case RngTerm(a) =>
-        Return(a)
-    }
+    free mapSuspension f
 
   def mapr(f: RngOp ~> RngOp): Rng[A] =
-    Rng(resume match {
-      case RngCont(q) =>
-        Suspend(f(q map (_.free)))
-      case RngTerm(a) =>
-        Return(a)
-    })
+    Rng(free mapFirstSuspension f)
 
   def go[AA >: A](f: RngOp[Rng[AA]] => Rng[AA]): AA =
     free.go[AA](r => f(r map (Rng(_))).free)
