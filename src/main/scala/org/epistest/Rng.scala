@@ -77,4 +77,21 @@ object Rng {
 
   def insert[A](a: A): Rng[A] =
     Rng(Return(a))
+
+  def chooseLong(l: Long, h: Long): Rng[Long] =
+    nextLong map (x => {
+      val (ll, hh) = if(h < l) (h, l) else (l, h)
+      ll + math.abs(x % (hh - ll + 1))
+    })
+
+  def chooseDouble(l: Double, h: Double): Rng[Double] = {
+    nextDouble map (x => {
+      val (ll, hh) = if(h < l) (h, l) else (l, h)
+      val diff = hh - ll
+      if(diff == 0)
+        ll
+      else
+        ll + math.abs(x * diff + ll)
+    })
+  }
 }
