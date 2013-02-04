@@ -1,6 +1,6 @@
 package org.epistest
 
-import scalaz._
+import scalaz._, Free._
 
 sealed trait RngOp[+A] {
   def map[B](f: A => B): RngOp[B] =
@@ -26,6 +26,9 @@ sealed trait RngOp[+A] {
 
   def longK: Kleisli[Option, Long, A] =
     Kleisli(runLong(_))
+
+  def lift: Rng[A] =
+    Rng(Suspend(map(Return(_))))
 
   def run(d: => Double, l: => Long): A =
     this match {
