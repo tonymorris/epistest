@@ -36,7 +36,7 @@ sealed trait Rng[+A] {
     }
 
   // CAUTION: unsafe
-  final def run: A = {
+  def run: A = {
     @annotation.tailrec
     def loop(g: Rng[A], r: java.util.Random): A =
       resume match {
