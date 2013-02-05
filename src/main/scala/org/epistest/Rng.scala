@@ -329,13 +329,3 @@ object Rng {
         insert(M.zero)
     }
 }
-
-
-object Main {
-  import Rng._
-
-  def main(args: Array[String]) {
-    val r = uppers(1000)
-    println(r.run)
-  }
-}
