@@ -185,7 +185,7 @@ object Rng {
   def alphanumeric: Rng[Char] =
     chooseInt(0, 61) map (c =>
       (if(c <= 25)
-        c + 48
+        c + 65
       else if(c <= 51)
         c + 71
       else
@@ -226,6 +226,9 @@ object Rng {
       a <- alpha
       b <- alphanumerics(if(z < 1) z + 1 else z - 1)
     } yield nel(a, b)
+
+  def identifierstring(z: Int): Rng[String] =
+    identifier(z) map (_.toList.mkString)
 
   def pair[A, B](a: Rng[A], b: Rng[B]): Rng[(A, B)] =
     a zip b
@@ -314,4 +317,3 @@ object Rng {
         insert(M.zero)
     }
 }
-
