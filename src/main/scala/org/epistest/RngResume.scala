@@ -10,36 +10,6 @@ sealed trait RngResume[+A] {
       case RngTerm(x) =>
         RngTerm(f(x))
     }
-
-  def free: Rng[A] =
-    Rng(this match {
-      case RngCont(x) =>
-        Suspend(x map (_.free))
-      case RngTerm(x) =>
-        Return(x)
-    })
-
-  def term: Option[A] =
-    this match {
-      case RngCont(_) =>
-        None
-      case RngTerm(x) =>
-        Some(x)
-    }
-
-  def cont: Option[RngOp[Rng[A]]] =
-    this match {
-      case RngCont(x) =>
-        Some(x)
-      case RngTerm(x) =>
-        None
-    }
-
-  def contLong(l: => Long) =
-    cont flatMap (_ runLong l)
-
-  def contDouble(d: => Double) =
-    cont flatMap (_ runDouble d)
 }
 case class RngCont[+A](x: RngOp[Rng[A]]) extends RngResume[A]
 case class RngTerm[+A](x: A) extends RngResume[A]

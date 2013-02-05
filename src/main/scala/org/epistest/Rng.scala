@@ -1,35 +1,15 @@
 package org.epistest
 
-import scalaz._, Free._, Scalaz._, NonEmptyList._, Digit._
+import scalaz._, Free._, Scalaz._
 
 sealed trait Rng[+A] {
   val free: Free[RngOp, A]
-
-  import Rng._
 
   def map[B](f: A => B): Rng[B] =
     Rng(free map f)
 
   def flatMap[B](f: A => Rng[B]): Rng[B] =
     Rng(free flatMap (f(_).free))
-
-  def ap[X](f: Rng[A => X]): Rng[X] =
-    for {
-      ff <- f
-      aa <- this
-    } yield ff(aa)
-
-  def zip[X](q: Rng[X]): Rng[(A, X)] =
-    for {
-      a <- this
-      x <- q
-    } yield (a, x)
-
-  def zap[G[+_], B](fs: Cofree[G, A => B])(implicit G: Functor[G], d: Zap[RngOp, G]): B =
-    free.zap(fs)
-
-  def foldRun[B, AA >: A](b: B)(f: (B, RngOp[Rng[AA]]) => (B, Rng[AA])): (B, AA) =
-    free.foldRun[B, AA](b)((bb, t) => f(bb, t map (Rng(_))) :-> (_.free))
 
   def resume: RngResume[A] =
     free.resume match {
@@ -54,44 +34,7 @@ sealed trait Rng[+A] {
     loop(this, new java.util.Random)
   }
 
-  def maph[G[+_]](f: RngOp ~> G)(implicit G: Functor[G]): Free[G, A] =
-    free mapSuspension f
 
-  def mapr(f: RngOp ~> RngOp): Rng[A] =
-    Rng(free mapFirstSuspension f)
-
-  def go[AA >: A](f: RngOp[Rng[AA]] => Rng[AA]): AA =
-    free.go[AA](r => f(r map (Rng(_))).free)
-
-  def gen[X]: Gen[X, A] =
-    Gen(_ => this)
-
-  def |+|[AA >: A](x: Rng[AA])(implicit S: Semigroup[AA]): Rng[AA] =
-    for {
-      a <- this
-      b <- x
-    } yield S.append(a, b)
-
-  def many: Rng[List[A]] =
-    int flatMap (n => sequence(List.fill(n)(this)))
-
-  def many1: Rng[NonEmptyList[A]] =
-    int flatMap (n => sequence(nel(this, List.fill(n)(this))))
-
-  def option: Rng[Option[A]] =
-    boolean flatMap (p => sequence[Option, A](if(p) None else Some(this)))
-
-  def ***[X](x: Rng[X]): Rng[(A, X)] =
-    zip(x)
-
-  def either[X](x: Rng[X]): Rng[A \/ X] =
-    boolean flatMap (p => if(p) map(_.left) else x map (_.right))
-
-  def +++[X](x: Rng[X]): Rng[A \/ X] =
-    either(x)
-
-  def eitherS[X](x: Rng[X]): Rng[Either[A, X]] =
-    either(x) map (_.toEither)
 }
 
 object Rng {
@@ -100,205 +43,31 @@ object Rng {
       val free = f
     }
 
-  def double: Rng[Double] =
-    NextDouble(x => x).lift
-
-  def long: Rng[Long] =
-    NextLong(x => x).lift
-
   def int: Rng[Int] =
     NextInt(x => x).lift
-
-  def boolean: Rng[Boolean] =
-    chooseInt(0, 1) map (_ == 0)
-
-  def digit: Rng[Digit] =
-    chooseInt(0, 9) map mod10Digit
-
-  def digits: Rng[List[Digit]] =
-    digit.many
-
-  def digits1: Rng[NonEmptyList[Digit]] =
-    digit.many1
-
-  def numeric: Rng[Char] =
-    digit map (_.toChar)
-
-  def numerics: Rng[List[Char]] =
-    numeric.many
-
-  def numerics1: Rng[NonEmptyList[Char]] =
-    numeric.many1
 
   def char: Rng[Char] =
     int map (_.toChar)
 
-  def chars: Rng[List[Char]] =
-    char.many
-
-  def chars1: Rng[NonEmptyList[Char]] =
-    char.many1
-
-  def upper: Rng[Char] =
-    chooseInt(65, 90) map (_.toChar)
-
-  def uppers: Rng[List[Char]] =
-    upper.many
-
-  def uppers1: Rng[NonEmptyList[Char]] =
-    upper.many1
-
-  def lower: Rng[Char] =
-    chooseInt(97, 122) map (_.toChar)
-
-  def lowers: Rng[List[Char]] =
-    lower.many
-
-  def lowers1: Rng[NonEmptyList[Char]] =
-    lower.many1
-
-  def alpha: Rng[Char] =
-    upper +++ lower map {
-      case -\/(c) => c
-      case \/-(c) => c
-    }
-
-  def alphas: Rng[List[Char]] =
-    alpha.many
-
-  def alphas1: Rng[NonEmptyList[Char]] =
-    alpha.many1
-
-  def alphanumeric: Rng[Char] =
-    chooseInt(0, 61) map (c =>
-      (if(c <= 25)
-        c + 48
-      else if(c <= 51)
-        c + 71
-      else
-        c - 4).toChar)
-
-  def alphanumerics: Rng[List[Char]] =
-    alphanumeric.many
-
-  def alphanumerics1: Rng[NonEmptyList[Char]] =
-    alphanumeric.many1
-
-  def string: Rng[String] =
-    chars map (_.mkString)
-
-  def string1: Rng[String] =
-    chars1 map (_.toList.mkString)
-
-  def alphastring: Rng[String] =
-    alpha.many map (_.mkString)
-
-  def alphastring1: Rng[String] =
-    alphas1 map (_.toList.mkString)
-
-  def numericstring: Rng[String] =
-    numeric.many map (_.mkString)
-
-  def numericstring1: Rng[String] =
-    numerics1 map (_.toList.mkString)
-
-  def alphanumericstring: Rng[String] =
-    alphanumeric.many map (_.mkString)
-
-  def alphanumericstring1: Rng[String] =
-    alphanumerics1 map (_.toList.mkString)
-
-  def identifier: Rng[NonEmptyList[Char]] =
-    for {
-      a <- alpha
-      b <- alphanumerics
-    } yield nel(a, b)
-
-  def pair[A, B](a: Rng[A], b: Rng[B]): Rng[(A, B)] =
-    a zip b
-
-  def triple[A, B, C](a: Rng[A], b: Rng[B], c: Rng[C]): Rng[(A, B, C)] =
-    for {
-      aa <- a
-      bb <- b
-      cc <- c
-    } yield (aa, bb, cc)
-
-  def insert[A](a: A): Rng[A] =
-    Rng(Return(a))
-
-  def chooseLong(l: Long, h: Long): Rng[Long] =
-    long map (x => {
-      val (ll, hh) = if(h < l) (h, l) else (l, h)
-      ll + math.abs(x % (hh - ll + 1))
-    })
-
-  def chooseDouble(l: Double, h: Double): Rng[Double] = {
-    double map (x => {
-      val (ll, hh) = if(h < l) (h, l) else (l, h)
-      val diff = hh - ll
-      if(diff == 0)
-        ll
-      else
-        ll + math.abs(x * diff + ll)
-    })
-  }
-
-  def chooseInt(l: Int, h: Int): Rng[Int] =
-    int map (x => {
-      val (ll, hh) = if(h < l) (h, l) else (l, h)
-      ll + math.abs(x % (hh - ll + 1))
-    })
-
-  def oneofL[A](x: NonEmptyList[A]): Rng[A] =
-    chooseInt(0, x.length - 1) map (x toList _)
-
-  def oneof[A](a: A, as: A*): Rng[A] =
-    oneofL(NonEmptyList(a, as: _*))
-
   def sequence[T[_], A](x: T[Rng[A]])(implicit T: Traverse[T]): Rng[T[A]] =
     T.sequence(x)
 
-  def sequencePair[X, A](x: X, r: Rng[A]): Rng[(X, A)] =
-    sequence[({type f[x] = (X, x)})#f, A]((x, r))
-
-  def frequencyL[A](x: NonEmptyList[(Int, Rng[A])]): Rng[A] = {
-    val t = x.foldLeft(0) {
-      case (a, (b, _)) => a + b
-    }
-
-    @annotation.tailrec
-    def pick(n: Int, l: NonEmptyList[(Int, Rng[A])]): Rng[A] = {
-      val (q, r) = l.head
-      if(n <= q)
-        r
-      else l.tail match {
-        case Nil => r
-        case e::es => pick(n - q, nel(e, es))
-      }
-    }
-
-    for {
-      n <- chooseInt(1, t)
-      w <- pick(n, x)
-    } yield w
-  }
 
   implicit val RngMonad: Monad[Rng] =
     new Monad[Rng] {
       def bind[A, B](a: Rng[A])(f: A => Rng[B]) =
         a flatMap f
       def point[A](a: => A) =
-        insert(a)
+        Rng(Return(a))
     }
 
-  implicit def RngMonoid[A](implicit M: Monoid[A]): Monoid[Rng[A]] =
-    new Monoid[Rng[A]] {
-      def append(r1: Rng[A], r2: => Rng[A]) =
-        r1 |+| r2
-
-      def zero =
-        insert(M.zero)
-    }
 }
 
+object T {
+  import Rng._
+
+  def main(args: Array[String]) {
+    val r = int flatMap (n => sequence[List, Char](List.fill(n)(char)))
+    println(r.run)
+  }
+}
