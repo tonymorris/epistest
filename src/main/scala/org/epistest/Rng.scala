@@ -43,6 +43,8 @@ sealed trait Rng[+A] {
           loop(q(r.nextDouble), r)
         case RngCont(NextLong(q)) =>
           loop(q(r.nextLong), r)
+        case RngCont(NextInt(q)) =>
+          loop(q(r.nextInt), r)
         case RngTerm(a) =>
           a
       }
@@ -75,6 +77,9 @@ object Rng {
   def nextLong: Rng[Long] =
     NextLong(x => x).lift
 
+  def nextInt: Rng[Int] =
+    NextInt(x => x).lift
+
   def insert[A](a: A): Rng[A] =
     Rng(Return(a))
 
@@ -94,4 +99,14 @@ object Rng {
         ll + math.abs(x * diff + ll)
     })
   }
+
+  def chooseInt(l: Int, h: Int): Rng[Int] =
+    nextInt map (x => {
+      val (ll, hh) = if(h < l) (h, l) else (l, h)
+      ll + math.abs(x % (hh - ll + 1))
+    })
+
+  def oneof[A](x: NonEmptyList[A]): Rng[A] =
+    chooseInt(0, x.length - 1) map (x toList _)
+
 }

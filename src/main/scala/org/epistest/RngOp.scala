@@ -7,18 +7,28 @@ sealed trait RngOp[+A] {
     this match {
       case NextDouble(q) => NextDouble(f compose q)
       case NextLong(q) => NextLong(f compose q)
+      case NextInt(q) => NextInt(f compose q)
     }
 
   def runDouble(d: => Double): Option[A] =
     this match {
       case NextDouble(q) => Some(q(d))
       case NextLong(_) => None
+      case NextInt(_) => None
     }
 
   def runLong(l: => Long): Option[A] =
     this match {
       case NextDouble(_) => None
       case NextLong(q) => Some(q(l))
+      case NextInt(_) => None
+    }
+
+  def runInt(i: => Int): Option[A] =
+    this match {
+      case NextDouble(_) => None
+      case NextLong(_) => None
+      case NextInt(q) => Some(q(i))
     }
 
   def doubleK: Kleisli[Option, Double, A] =
@@ -27,17 +37,22 @@ sealed trait RngOp[+A] {
   def longK: Kleisli[Option, Long, A] =
     Kleisli(runLong(_))
 
+  def intK: Kleisli[Option, Int, A] =
+    Kleisli(runInt(_))
+
   def lift: Rng[A] =
     Rng(Suspend(map(Return(_))))
 
-  def run(d: => Double, l: => Long): A =
+  def run(d: => Double, l: => Long, i: => Int): A =
     this match {
       case NextDouble(q) => q(d)
       case NextLong(q) => q(l)
+      case NextInt(q) => q(i)
     }
 }
 private case class NextDouble[+A](q: Double => A) extends RngOp[A]
 private case class NextLong[+A](q: Long => A) extends RngOp[A]
+private case class NextInt[+A](q: Int => A) extends RngOp[A]
 
 object RngOp {
   implicit val RngOpFunctor: Functor[RngOp] =
