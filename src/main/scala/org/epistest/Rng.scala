@@ -73,13 +73,13 @@ sealed trait Rng[+A] {
     } yield S.append(a, b)
 
   def many: Rng[List[A]] =
-    nextInt flatMap (n => sequence(List.fill(n)(this)))
+    int flatMap (n => sequence(List.fill(n)(this)))
 
   def many1: Rng[NonEmptyList[A]] =
-    nextInt flatMap (n => sequence(nel(this, List.fill(n)(this))))
+    int flatMap (n => sequence(nel(this, List.fill(n)(this))))
 
   def option: Rng[Option[A]] =
-    chooseBoolean flatMap (p => sequence[Option, A](if(p) None else Some(this)))
+    boolean flatMap (p => sequence[Option, A](if(p) None else Some(this)))
 }
 
 object Rng {
@@ -88,26 +88,50 @@ object Rng {
       val free = f
     }
 
-  def nextDouble: Rng[Double] =
+  def double: Rng[Double] =
     NextDouble(x => x).lift
 
-  def nextLong: Rng[Long] =
+  def long: Rng[Long] =
     NextLong(x => x).lift
 
-  def nextInt: Rng[Int] =
+  def int: Rng[Int] =
     NextInt(x => x).lift
+
+  def boolean: Rng[Boolean] =
+    chooseInt(0, 1) map (_ == 0)
+
+  def digit: Rng[Digit] =
+    chooseInt(0, 9) map mod10Digit
+
+  def numericChar: Rng[Char] =
+    digit map (_.toChar)
+
+  def char: Rng[Char] =
+    int map (_.toChar)
+
+  def upper: Rng[Char] =
+    chooseInt(65, 90) map (_.toChar)
+
+  def lower: Rng[Char] =
+    chooseInt(97, 122) map (_.toChar)
+
+  def string: Rng[String] =
+    char.many map (_.mkString)
+
+  def string1: Rng[String] =
+    char.many1 map (_.toList.mkString)
 
   def insert[A](a: A): Rng[A] =
     Rng(Return(a))
 
   def chooseLong(l: Long, h: Long): Rng[Long] =
-    nextLong map (x => {
+    long map (x => {
       val (ll, hh) = if(h < l) (h, l) else (l, h)
       ll + math.abs(x % (hh - ll + 1))
     })
 
   def chooseDouble(l: Double, h: Double): Rng[Double] = {
-    nextDouble map (x => {
+    double map (x => {
       val (ll, hh) = if(h < l) (h, l) else (l, h)
       val diff = hh - ll
       if(diff == 0)
@@ -118,16 +142,10 @@ object Rng {
   }
 
   def chooseInt(l: Int, h: Int): Rng[Int] =
-    nextInt map (x => {
+    int map (x => {
       val (ll, hh) = if(h < l) (h, l) else (l, h)
       ll + math.abs(x % (hh - ll + 1))
     })
-
-  def chooseBoolean: Rng[Boolean] =
-    chooseInt(0, 1) map (_ == 0)
-
-  def chooseDigit: Rng[Digit] =
-    chooseInt(0, 9) map mod10Digit
 
   def oneofL[A](x: NonEmptyList[A]): Rng[A] =
     chooseInt(0, x.length - 1) map (x toList _)
