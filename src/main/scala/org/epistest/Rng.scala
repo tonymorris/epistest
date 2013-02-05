@@ -63,6 +63,12 @@ sealed trait Rng[+A] {
 
   def gen[X]: Gen[X, A] =
     Gen(_ => this)
+
+  def |+|[AA >: A](x: Rng[AA])(implicit S: Semigroup[AA]): Rng[AA] =
+    for {
+      a <- this
+      b <- x
+    } yield S.append(a, b)
 }
 
 object Rng {
@@ -109,4 +115,35 @@ object Rng {
   def oneof[A](x: NonEmptyList[A]): Rng[A] =
     chooseInt(0, x.length - 1) map (x toList _)
 
+  def oneofv[A](a: A, as: A*): Rng[A] =
+    oneof(NonEmptyList(a, as: _*))
+
+  def sequence[T[_], A](x: T[Rng[A]])(implicit T: Traverse[T]): Rng[T[A]] =
+    T.sequence(x)
+
+  def sequenceL[A](x: List[Rng[A]]): Rng[List[A]] =
+    sequence(x)
+
+  def sequenceO[A](x: Option[Rng[A]]): Rng[Option[A]] =
+    sequence(x)
+
+  def sequenceT[A](x: Tree[Rng[A]]): Rng[Tree[A]] =
+    sequence(x)
+
+  implicit val RngMonad: Monad[Rng] =
+    new Monad[Rng] {
+      def bind[A, B](a: Rng[A])(f: A => Rng[B]) =
+        a flatMap f
+      def point[A](a: => A) =
+        insert(a)
+    }
+
+  implicit def RngMonoid[A](implicit M: Monoid[A]): Monoid[Rng[A]] =
+    new Monoid[Rng[A]] {
+      def append(r1: Rng[A], r2: => Rng[A]) =
+        r1 |+| r2
+
+      def zero =
+        insert(M.zero)
+    }
 }
