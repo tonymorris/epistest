@@ -38,7 +38,7 @@ sealed trait Rng[+A] {
 }
 
 object Rng {
-  private[epistest] def apply[A](f: Free[RngOp, A]): Rng[A] =
+  def apply[A](f: Free[RngOp, A]): Rng[A] =
     new Rng[A] {
       val free = f
     }
@@ -46,12 +46,8 @@ object Rng {
   def int: Rng[Int] =
     NextInt(x => x).lift
 
-  def char: Rng[Char] =
-    int map (_.toChar)
-
   def sequence[T[_], A](x: T[Rng[A]])(implicit T: Traverse[T]): Rng[T[A]] =
     T.sequence(x)
-
 
   implicit val RngMonad: Monad[Rng] =
     new Monad[Rng] {
@@ -63,11 +59,13 @@ object Rng {
 
 }
 
-object T {
+object Main {
   import Rng._
 
   def main(args: Array[String]) {
-    val r = int flatMap (n => sequence[List, Char](List.fill(n)(char)))
+    def g(n: Int): List[Rng[Int]] = List.fill(n)(int)
+    def h(n: Int): Rng[List[Int]] = sequence[List, Int](g(n))
+    val r = int flatMap h
     println(r.run)
   }
 }
