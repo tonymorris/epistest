@@ -1,6 +1,6 @@
 package org.epistest
 
-import scalaz._, Free._, Scalaz._, NonEmptyList._
+import scalaz._, Free._, Scalaz._, NonEmptyList._, Digit._
 
 sealed trait Rng[+A] {
   val free: Free[RngOp, A]
@@ -125,6 +125,9 @@ object Rng {
 
   def chooseBoolean: Rng[Boolean] =
     chooseInt(0, 1) map (_ == 0)
+
+  def chooseDigit: Rng[Digit] =
+    chooseInt(0, 9) map mod10Digit
 
   def oneofL[A](x: NonEmptyList[A]): Rng[A] =
     chooseInt(0, x.length - 1) map (x toList _)
