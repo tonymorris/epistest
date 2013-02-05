@@ -38,7 +38,7 @@ sealed trait Rng[+A] {
   def run: A = {
     @annotation.tailrec
     def loop(g: Rng[A], r: java.util.Random): A =
-      resume match {
+      g.resume match {
         case RngCont(NextDouble(q)) =>
           loop(q(r.nextDouble), r)
         case RngCont(NextLong(q)) =>
