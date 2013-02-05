@@ -169,14 +169,23 @@ object Rng {
   def alphas1: Rng[NonEmptyList[Char]] =
     alpha.many1
 
+  def alphanumeric: Rng[Char] =
+    chooseInt(0, 61) map (c =>
+      (if(c <= 25)
+        c + 48
+      else if(c <= 51)
+        c + 71
+      else
+        c - 4).toChar)
+
+  def alphanumerics: Rng[List[Char]] =
+    alphanumeric.many
+
+  def alphanumerics1: Rng[NonEmptyList[Char]] =
+    alphanumeric.many1
+
   def string: Rng[String] =
     chars map (_.mkString)
-
-  def strings: Rng[List[String]] =
-    string.many
-
-  def strings1: Rng[NonEmptyList[String]] =
-    string.many1
 
   def string1: Rng[String] =
     chars1 map (_.toList.mkString)
@@ -184,26 +193,26 @@ object Rng {
   def alphastring: Rng[String] =
     alpha.many map (_.mkString)
 
-  def alphastrings: Rng[List[String]] =
-    alphastring.many
-
-  def alphastrings1: Rng[NonEmptyList[String]] =
-    alphastring.many1
-
   def alphastring1: Rng[String] =
     alphas1 map (_.toList.mkString)
 
   def numericstring: Rng[String] =
     numeric.many map (_.mkString)
 
-  def numericstrings: Rng[List[String]] =
-    numericstring.many
-
-  def numericstrings1: Rng[NonEmptyList[String]] =
-    numericstring.many1
-
   def numericstring1: Rng[String] =
     numerics1 map (_.toList.mkString)
+
+  def alphanumericstring: Rng[String] =
+    alphanumeric.many map (_.mkString)
+
+  def alphanumericstring1: Rng[String] =
+    alphanumerics1 map (_.toList.mkString)
+
+  def identifier: Rng[NonEmptyList[Char]] =
+    for {
+      a <- alpha
+      b <- alphanumerics
+    } yield nel(a, b)
 
   def pair[A, B](a: Rng[A], b: Rng[B]): Rng[(A, B)] =
     a zip b
