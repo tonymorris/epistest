@@ -123,7 +123,7 @@ object Rng {
     int map (math.abs(_))
 
   def negativeint: Rng[Int] =
-    int map (n => if(n > 0) -n else n)
+    int map (n => if(n > 0) n else -n)
 
   def digit: Rng[Digit] =
     chooseInt(0, 9) map mod10Digit
