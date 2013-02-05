@@ -18,20 +18,22 @@ sealed trait Rng[+A] {
     }
 
   def run: A = {
+    val r = new java.util.Random
+
     @annotation.tailrec
-    def loop(g: Rng[A], r: java.util.Random): A =
+    def loop(g: Rng[A]): A =
       g.resume match {
         case RngCont(NextDouble(q)) =>
-          loop(q(r.nextDouble), r)
+          loop(q(r.nextDouble))
         case RngCont(NextLong(q)) =>
-          loop(q(r.nextLong), r)
+          loop(q(r.nextLong))
         case RngCont(NextInt(q)) =>
-          loop(q(r.nextInt), r)
+          loop(q(r.nextInt))
         case RngTerm(a) =>
           a
       }
 
-    loop(this, new java.util.Random)
+    loop(this)
   }
 
 
@@ -45,6 +47,15 @@ object Rng {
 
   def int: Rng[Int] =
     NextInt(x => x).lift
+
+  def sequenceL[A](x: List[Rng[A]]): Rng[List[A]] = {
+    x.foldRight[Rng[List[A]]](Rng(Return(Nil))) {
+      case (a, b) => for {
+        aa <- a
+        bb <- b
+      } yield aa::bb
+    }
+  }
 
   def sequence[T[_], A](x: T[Rng[A]])(implicit T: Traverse[T]): Rng[T[A]] =
     T.sequence(x)
@@ -64,8 +75,8 @@ object Main {
 
   def main(args: Array[String]) {
     def g(n: Int): List[Rng[Int]] = List.fill(n)(int)
-    def h(n: Int): Rng[List[Int]] = sequence[List, Int](g(n))
-    val r = int flatMap h
+    def h(n: Int): Rng[List[Int]] = sequenceL[Int](g(n))
+    val r = int flatMap (n => h(math.abs(n % 10)))
     println(r.run)
   }
 }
