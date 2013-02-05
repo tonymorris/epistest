@@ -89,6 +89,9 @@ sealed trait Rng[+A] {
 
   def +++[X](x: Rng[X]): Rng[A \/ X] =
     either(x)
+
+  def eitherS[X](x: Rng[X]): Rng[Either[A, X]] =
+    either(x) map (_.toEither)
 }
 
 object Rng {
