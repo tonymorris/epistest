@@ -121,14 +121,8 @@ object Rng {
   def sequence[T[_], A](x: T[Rng[A]])(implicit T: Traverse[T]): Rng[T[A]] =
     T.sequence(x)
 
-  def sequenceL[A](x: List[Rng[A]]): Rng[List[A]] =
-    sequence(x)
-
-  def sequenceO[A](x: Option[Rng[A]]): Rng[Option[A]] =
-    sequence(x)
-
-  def sequenceT[A](x: Tree[Rng[A]]): Rng[Tree[A]] =
-    sequence(x)
+  def sequencePair[X, A](x: X, r: Rng[A]): Rng[(X, A)] =
+    sequence[({type f[x] = (X, x)})#f, A]((x, r))
 
   implicit val RngMonad: Monad[Rng] =
     new Monad[Rng] {
@@ -147,3 +141,4 @@ object Rng {
         insert(M.zero)
     }
 }
+
