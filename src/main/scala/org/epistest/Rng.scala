@@ -43,6 +43,8 @@ sealed trait Rng[+A] {
       g.resume match {
         case RngCont(NextDouble(q)) =>
           loop(q(r.nextDouble), r)
+        case RngCont(NextFloat(q)) =>
+          loop(q(r.nextFloat), r)
         case RngCont(NextLong(q)) =>
           loop(q(r.nextLong), r)
         case RngCont(NextInt(q)) =>
@@ -109,6 +111,9 @@ object Rng {
 
   def double: Rng[Double] =
     NextDouble(x => x).lift
+
+  def float: Rng[Float] =
+    NextFloat(x => x).lift
 
   def long: Rng[Long] =
     NextLong(x => x).lift
@@ -272,6 +277,17 @@ object Rng {
     })
   }
 
+  def chooseFloat(l: Float, h: Float): Rng[Float] = {
+    float map (x => {
+      val (ll, hh) = if(h < l) (h, l) else (l, h)
+      val diff = hh - ll
+      if(diff == 0)
+        ll
+      else
+        ll + math.abs(x * diff + ll)
+    })
+  }
+
   def chooseInt(l: Int, h: Int): Rng[Int] =
     int map (x => {
       val (ll, hh) = if(h < l) (h, l) else (l, h)
@@ -334,8 +350,4 @@ object Rng {
       def zero =
         insert(M.zero)
     }
-}
-
-object T {
-  val h = implicitly[Monoid[Rng[String]]]
 }
