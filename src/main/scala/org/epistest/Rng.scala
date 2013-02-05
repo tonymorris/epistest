@@ -320,6 +320,12 @@ object Rng {
         insert(a)
     }
 
+  implicit def RngSemigroup[A](implicit S: Semigroup[A]): Semigroup[Rng[A]] =
+    new Semigroup[Rng[A]] {
+      def append(r1: Rng[A], r2: => Rng[A]) =
+        r1 |+| r2
+    }
+
   implicit def RngMonoid[A](implicit M: Monoid[A]): Monoid[Rng[A]] =
     new Monoid[Rng[A]] {
       def append(r1: Rng[A], r2: => Rng[A]) =
@@ -328,4 +334,8 @@ object Rng {
       def zero =
         insert(M.zero)
     }
+}
+
+object T {
+  val h = implicitly[Monoid[Rng[String]]]
 }
