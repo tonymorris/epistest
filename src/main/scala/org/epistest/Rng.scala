@@ -1,9 +1,11 @@
 package org.epistest
 
-import scalaz._, Free._, Scalaz._
+import scalaz._, Free._, Scalaz._, NonEmptyList._
 
 sealed trait Rng[+A] {
   val free: Free[RngOp, A]
+
+  import Rng._
 
   def map[B](f: A => B): Rng[B] =
     Rng(free map f)
@@ -69,6 +71,15 @@ sealed trait Rng[+A] {
       a <- this
       b <- x
     } yield S.append(a, b)
+
+  def many: Rng[List[A]] =
+    nextInt flatMap (n => sequence(List.fill(n)(this)))
+
+  def many1: Rng[NonEmptyList[A]] =
+    nextInt flatMap (n => sequence(nel(this, List.fill(n)(this))))
+
+  def option: Rng[Option[A]] =
+    chooseBoolean flatMap (p => sequence[Option, A](if(p) None else Some(this)))
 }
 
 object Rng {
@@ -112,17 +123,42 @@ object Rng {
       ll + math.abs(x % (hh - ll + 1))
     })
 
-  def oneof[A](x: NonEmptyList[A]): Rng[A] =
+  def chooseBoolean: Rng[Boolean] =
+    chooseInt(0, 1) map (_ == 0)
+
+  def oneofL[A](x: NonEmptyList[A]): Rng[A] =
     chooseInt(0, x.length - 1) map (x toList _)
 
-  def oneofv[A](a: A, as: A*): Rng[A] =
-    oneof(NonEmptyList(a, as: _*))
+  def oneof[A](a: A, as: A*): Rng[A] =
+    oneofL(NonEmptyList(a, as: _*))
 
   def sequence[T[_], A](x: T[Rng[A]])(implicit T: Traverse[T]): Rng[T[A]] =
     T.sequence(x)
 
   def sequencePair[X, A](x: X, r: Rng[A]): Rng[(X, A)] =
     sequence[({type f[x] = (X, x)})#f, A]((x, r))
+
+  def frequencyL[A](x: NonEmptyList[(Int, Rng[A])]): Rng[A] = {
+    val t = x.foldLeft(0) {
+      case (a, (b, _)) => a + b
+    }
+
+    @annotation.tailrec
+    def pick(n: Int, l: NonEmptyList[(Int, Rng[A])]): Rng[A] = {
+      val (q, r) = l.head
+      if(n <= q)
+        r
+      else l.tail match {
+        case Nil => r
+        case e::es => pick(n - q, nel(e, es))
+      }
+    }
+
+    for {
+      n <- chooseInt(1, t)
+      w <- pick(n, x)
+    } yield w
+  }
 
   implicit val RngMonad: Monad[Rng] =
     new Monad[Rng] {
