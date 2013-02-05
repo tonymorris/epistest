@@ -80,6 +80,15 @@ sealed trait Rng[+A] {
 
   def option: Rng[Option[A]] =
     boolean flatMap (p => sequence[Option, A](if(p) None else Some(this)))
+
+  def ***[X](x: Rng[X]): Rng[(A, X)] =
+    zip(x)
+
+  def either[X](x: Rng[X]): Rng[A \/ X] =
+    boolean flatMap (p => if(p) map(_.left) else x map (_.right))
+
+  def +++[X](x: Rng[X]): Rng[A \/ X] =
+    either(x)
 }
 
 object Rng {
@@ -120,6 +129,16 @@ object Rng {
 
   def string1: Rng[String] =
     char.many1 map (_.toList.mkString)
+
+  def pair[A, B](a: Rng[A], b: Rng[B]): Rng[(A, B)] =
+    a zip b
+
+  def triple[A, B, C](a: Rng[A], b: Rng[B], c: Rng[C]): Rng[(A, B, C)] =
+    for {
+      aa <- a
+      bb <- b
+      cc <- c
+    } yield (aa, bb, cc)
 
   def insert[A](a: A): Rng[A] =
     Rng(Return(a))
