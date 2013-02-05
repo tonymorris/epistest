@@ -203,6 +203,18 @@ object Rng {
   def string1(z: Int): Rng[String] =
     chars1(z) map (_.toList.mkString)
 
+  def upperstring(z: Int): Rng[String] =
+    uppers(z) map (_.mkString)
+
+  def upperstring1(z: Int): Rng[String] =
+    uppers1(z) map (_.toList.mkString)
+
+  def lowerstring(z: Int): Rng[String] =
+    lowers(z) map (_.mkString)
+
+  def lowerstring1(z: Int): Rng[String] =
+    lowers1(z) map (_.toList.mkString)
+
   def alphastring(z: Int): Rng[String] =
     alphas(z) map (_.mkString)
 
@@ -316,4 +328,14 @@ object Rng {
       def zero =
         insert(M.zero)
     }
+}
+
+
+object Main {
+  import Rng._
+
+  def main(args: Array[String]) {
+    val r = uppers(1000)
+    println(r.run)
+  }
 }
