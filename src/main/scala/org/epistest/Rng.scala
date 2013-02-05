@@ -115,23 +115,95 @@ object Rng {
   def digit: Rng[Digit] =
     chooseInt(0, 9) map mod10Digit
 
-  def numericChar: Rng[Char] =
+  def digits: Rng[List[Digit]] =
+    digit.many
+
+  def digits1: Rng[NonEmptyList[Digit]] =
+    digit.many1
+
+  def numeric: Rng[Char] =
     digit map (_.toChar)
+
+  def numerics: Rng[List[Char]] =
+    numeric.many
+
+  def numerics1: Rng[NonEmptyList[Char]] =
+    numeric.many1
 
   def char: Rng[Char] =
     int map (_.toChar)
 
+  def chars: Rng[List[Char]] =
+    char.many
+
+  def chars1: Rng[NonEmptyList[Char]] =
+    char.many1
+
   def upper: Rng[Char] =
     chooseInt(65, 90) map (_.toChar)
+
+  def uppers: Rng[List[Char]] =
+    upper.many
+
+  def uppers1: Rng[NonEmptyList[Char]] =
+    upper.many1
 
   def lower: Rng[Char] =
     chooseInt(97, 122) map (_.toChar)
 
+  def lowers: Rng[List[Char]] =
+    lower.many
+
+  def lowers1: Rng[NonEmptyList[Char]] =
+    lower.many1
+
+  def alpha: Rng[Char] =
+    upper +++ lower map {
+      case -\/(c) => c
+      case \/-(c) => c
+    }
+
+  def alphas: Rng[List[Char]] =
+    alpha.many
+
+  def alphas1: Rng[NonEmptyList[Char]] =
+    alpha.many1
+
   def string: Rng[String] =
-    char.many map (_.mkString)
+    chars map (_.mkString)
+
+  def strings: Rng[List[String]] =
+    string.many
+
+  def strings1: Rng[NonEmptyList[String]] =
+    string.many1
 
   def string1: Rng[String] =
-    char.many1 map (_.toList.mkString)
+    chars1 map (_.toList.mkString)
+
+  def alphastring: Rng[String] =
+    alpha.many map (_.mkString)
+
+  def alphastrings: Rng[List[String]] =
+    alphastring.many
+
+  def alphastrings1: Rng[NonEmptyList[String]] =
+    alphastring.many1
+
+  def alphastring1: Rng[String] =
+    alphas1 map (_.toList.mkString)
+
+  def numericstring: Rng[String] =
+    numeric.many map (_.mkString)
+
+  def numericstrings: Rng[List[String]] =
+    numericstring.many
+
+  def numericstrings1: Rng[NonEmptyList[String]] =
+    numericstring.many1
+
+  def numericstring1: Rng[String] =
+    numerics1 map (_.toList.mkString)
 
   def pair[A, B](a: Rng[A], b: Rng[B]): Rng[(A, B)] =
     a zip b
