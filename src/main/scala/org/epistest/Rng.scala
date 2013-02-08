@@ -74,18 +74,18 @@ sealed trait Rng[+A] {
       b <- x
     } yield S.append(a, b)
 
-  def many(z: Int): Rng[List[A]] =
-    for {
-      i <- chooseInt(0, z)
-      q <- sequence(List.fill(i)(this))
-    } yield q
+  def many: Gen[List[A]] =
+    Gen(z => for {
+          i <- chooseInt(0, z)
+          q <- sequence(List.fill(i)(this))
+        } yield q)
 
-  def many1(z: Int): Rng[NonEmptyList[A]] =
-    for {
+  def many1: Gen[NonEmptyList[A]] =
+    Gen(z => for {
       i <- chooseInt(0, z)
       p <- this
       q <- sequence(List.fill(i)(this))
-    } yield nel(p, q)
+    } yield nel(p, q))
 
   def option: Rng[Option[A]] =
     boolean flatMap (p => sequence[Option, A](if(p) None else Some(this)))
@@ -266,7 +266,7 @@ object Rng {
       ll + math.abs(x % (hh - ll + 1))
     })
 
-  def chooseDouble(l: Double, h: Double): Rng[Double] = {
+  def chooseDouble(l: Double, h: Double): Rng[Double] =
     double map (x => {
       val (ll, hh) = if(h < l) (h, l) else (l, h)
       val diff = hh - ll
@@ -275,9 +275,8 @@ object Rng {
       else
         ll + math.abs(x * diff + ll)
     })
-  }
 
-  def chooseFloat(l: Float, h: Float): Rng[Float] = {
+  def chooseFloat(l: Float, h: Float): Rng[Float] =
     float map (x => {
       val (ll, hh) = if(h < l) (h, l) else (l, h)
       val diff = hh - ll
@@ -286,7 +285,6 @@ object Rng {
       else
         ll + math.abs(x * diff + ll)
     })
-  }
 
   def chooseInt(l: Int, h: Int): Rng[Int] =
     int map (x => {
