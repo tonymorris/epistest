@@ -89,19 +89,3 @@ object Track {
     new TrackApply[B] {}
 
 }
-
-object Main {
-  import Track._
-
-  def main(args: Array[String]) {
-    val program =
-      for {
-        x <- track[Int](8)
-        y <- track(9)
-        z <- track(y + 10)
-      } yield (x, y, z)
-    val r =
-      program(22+)
-    println(r.tracks.results map (x => (x.parameter, x.result)))
-  }
-}
