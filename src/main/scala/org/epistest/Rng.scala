@@ -65,7 +65,7 @@ sealed trait Rng[+A] {
   def go[AA >: A](f: RngOp[Rng[AA]] => Rng[AA]): AA =
     free.go[AA](r => f(r map (Rng(_))).free)
 
-  def gen[X]: Gen[X, A] =
+  def gen: Gen[A] =
     Gen(_ => this)
 
   def |+|[AA >: A](x: Rng[AA])(implicit S: Semigroup[AA]): Rng[AA] =
