@@ -77,4 +77,14 @@ object RngOp {
       def map[A, B](a: RngOp[A])(f: A => B) =
         a map f
     }
+
+  def demote[A, B](a: RngOp[A => B]): A => RngOp[B] =
+    w =>
+      a match {
+        case NextDouble(q) => NextDouble(q(_)(w))
+        case NextFloat(q) => NextFloat(q(_)(w))
+        case NextLong(q) => NextLong(q(_)(w))
+        case NextInt(q) => NextInt(q(_)(w))
+      }
+
 }
