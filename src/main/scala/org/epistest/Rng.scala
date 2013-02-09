@@ -247,12 +247,6 @@ object Rng {
   def identifierstring(z: Int): Rng[String] =
     identifier(z) map (_.toList.mkString)
 
-  /*
-  def demote[A, B](a: Rng[A => B]): A => Rng[B] =
-    w =>
-      a.mapr(error(""))
-      */
-
   def pair[A, B](a: Rng[A], b: Rng[B]): Rng[(A, B)] =
     a zip b
 
