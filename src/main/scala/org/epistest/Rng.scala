@@ -98,6 +98,12 @@ sealed trait Rng[+A] {
       } yield nel(z, a)
     )
 
+  def vector: Gen[Vector[A]] =
+    list map (Vector(_: _*))
+
+  def stream[AA >: A]: Gen[EphemeralStream[AA]] =
+    list map (EphemeralStream(_: _*))
+
   def option: Rng[Option[A]] =
     boolean flatMap (p => sequence[Option, A](if(p) None else Some(this)))
 
@@ -159,6 +165,9 @@ object Rng {
 
   def int: Rng[Int] =
     nextbits(32)
+
+  def unit: Rng[Unit] =
+    insert(())
 
   def boolean: Rng[Boolean] =
     chooseInt(0, 1) map (_ == 0)

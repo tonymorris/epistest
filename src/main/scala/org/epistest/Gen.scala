@@ -102,6 +102,9 @@ object Gen {
   def int: Gen[Int] =
     Rng.int.gen
 
+  def unit: Gen[Unit] =
+    insert(())
+
   def boolean: Gen[Boolean] =
     Rng.boolean.gen
 
