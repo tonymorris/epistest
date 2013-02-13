@@ -43,6 +43,9 @@ object Labels {
       val value = x
     }
 
+  def empty: Labels =
+    apply(MaybeEmptyList.empty)
+
   def single(l: Label): Labels =
     apply(MaybeEmptyList.single(l))
 }

@@ -67,10 +67,10 @@ sealed trait Rng[+A] {
 
   def go[AA >: A](f: RngOp[Rng[AA]] => Rng[AA]): AA =
     free.go[AA](r => f(r map (Rng(_))).free)
-     /*
+
   def gen: Gen[A] =
-    Gen(_ => this)
-       */
+    Gen(s => map(a => GenResult(s, Labels.empty, a)))
+
   def |+|[AA >: A](x: Rng[AA])(implicit S: Semigroup[AA]): Rng[AA] =
     for {
       a <- this

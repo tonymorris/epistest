@@ -3,26 +3,17 @@ package org.epistest
 import scalaz._, Scalaz._
 
 sealed trait Gen[+A] {
-  val value: Size => Rng[(Size, Labels, A)]
+  val value: Size => Rng[GenResult[A]]
 
   def apply(a: Size): Rng[A] =
-    value(a) map (_._3)
+    value(a) map (_.value)
 
   def map[X](f: A => X): Gen[X] =
-    Gen(value(_) map {
-      case (t, b, r) => (t, b, f(r))
-    })
+    Gen(value(_) map (_ map f))
 
   def flatMap[X](f: A => Gen[X]): Gen[X] =
     Gen(s =>
-      value(s) flatMap {
-        case (t, b, r) => {
-          f(r) value t map {
-            case (u, c, p) => (u, b ++ c, p)
-          }
-
-        }
-      })
+      value(s) flatMap (r => f(r.value) value r.size map (e => r.labels ::: e)))
 
   def ap[X](f: Gen[A => X]): Gen[X] =
     for {
@@ -36,19 +27,19 @@ sealed trait Gen[+A] {
       x <- q
     } yield (b, x)
 
-  def resume(a: Size): RngResume[(Size, Labels, A)] =
+  def resume(a: Size): RngResume[GenResult[A]] =
     value(a).resume
-       /*
-  def run(a: Int): A =
+
+  def run(a: Size): GenResult[A] =
     value(a).run
 
   def mapr(f: RngOp ~> RngOp): Gen[A] =
     Gen(value(_) mapr f)
 
-  def mapRng[X](f: Rng[A] => Rng[X]): Gen[X] =
+  def mapRng[X](f: Rng[GenResult[A]] => Rng[GenResult[X]]): Gen[X] =
     Gen(f compose value)
 
-  def flatMapRng[X](f: Rng[A] => Gen[X]): Gen[X] =
+  def flatMapRng[X](f: Rng[GenResult[A]] => Gen[X]): Gen[X] =
     Gen(a => f(value(a)) value a)
 
   def |+|[AA >: A](x: Gen[AA])(implicit S: Semigroup[AA]): Gen[AA] =
@@ -56,7 +47,7 @@ sealed trait Gen[+A] {
       a <- this
       b <- x
     } yield S.append(a, b)
-
+                                             /*
   def many: Gen[List[A]] =
     Gen(s => value(s) many s)
 
@@ -81,7 +72,7 @@ sealed trait Gen[+A] {
 }
 
 object Gen {
-  private[epistest] def apply[A](v: Size => Rng[(Size, Labels, A)]): Gen[A] =
+  private[epistest] def apply[A](v: Size => Rng[GenResult[A]]): Gen[A] =
     new Gen[A] {
       val value = v
     }
