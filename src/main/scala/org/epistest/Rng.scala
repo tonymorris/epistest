@@ -10,6 +10,12 @@ sealed trait Rng[+A] {
   def map[B](f: A => B): Rng[B] =
     Rng(free map f)
 
+  def zap[B](c: Corng[A => B]): B =
+    free zap c.cofree
+
+  def zapWith[B, C](c: Corng[B])(f: (A, B) => C): C =
+    free.zapWith(c.cofree)(f)
+
   def flatMap[B](f: A => Rng[B]): Rng[B] =
     Rng(free flatMap (f(_).free))
 
@@ -24,9 +30,6 @@ sealed trait Rng[+A] {
       a <- this
       x <- q
     } yield (a, x)
-
-  def zap[G[+_], B](fs: Cofree[G, A => B])(implicit G: Functor[G], d: Zap[RngOp, G]): B =
-    free.zap(fs)
 
   def foldRun[B, AA >: A](b: B)(f: (B, RngOp[Rng[AA]]) => (B, Rng[AA])): (B, AA) =
     free.foldRun[B, AA](b)((bb, t) => f(bb, t map (Rng(_))) :-> (_.free))
@@ -335,6 +338,12 @@ object Rng {
         a flatMap f
       def point[A](a: => A) =
         insert(a)
+    }
+
+  implicit val RngZap: Zap[Rng, Corng] =
+    new Zap[Rng, Corng] {
+      override def zapWith[A, B, C](r: Rng[A], c: Corng[B])(f: (A, B) => C) =
+        r.zapWith(c)(f)
     }
 
   implicit def RngSemigroup[A](implicit S: Semigroup[A]): Semigroup[Rng[A]] =

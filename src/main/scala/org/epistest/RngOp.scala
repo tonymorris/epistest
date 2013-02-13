@@ -11,6 +11,21 @@ sealed trait RngOp[+A] {
       case NextInt(q) => NextInt(f compose q)
     }
 
+  def zap[B](c: CorngOp[A => B]): B =
+    c.zapWith(this)(_(_))
+
+  def zapWith[B, C](c: CorngOp[B])(f: (A, B) => C): C =
+    f(this match {
+      case NextDouble(q) =>
+	      q(c.double)
+      case NextFloat(q) =>
+	      q(c.float)
+      case NextLong(q) =>
+	      q(c.long)
+      case NextInt(q) =>
+	      q(c.int)
+    }, c.value)
+
   def runDouble(d: => Double): Option[A] =
     this match {
       case NextDouble(q) => Some(q(d))
@@ -76,6 +91,12 @@ object RngOp {
     new Functor[RngOp] {
       def map[A, B](a: RngOp[A])(f: A => B) =
         a map f
+    }
+
+  implicit val RngOpZap: Zap[RngOp, CorngOp] =
+    new Zap[RngOp, CorngOp] {
+      override def zapWith[A, B, C](r: RngOp[A], c: CorngOp[B])(f: (A, B) => C) =
+        r.zapWith(c)(f)
     }
 
   def demote[A, B](a: RngOp[A => B]): A => RngOp[B] =

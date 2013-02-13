@@ -8,6 +8,12 @@ sealed trait Corng[+A] {
   def map[B](f: A => B): Corng[B] =
     Corng(cofree map f)
 
+  def zap[B](r: Rng[A => B]): B =
+    cofree zap r.free
+
+  def zapWith[B, C](r: Rng[B])(f: (A, B) => C): C =
+    cofree.zapWith(r.free)(f)
+
   def coflatMap[B](f: Corng[A] => B): Corng[B] =
     Corng(cofree extend (c => f(Corng(c))))
 
@@ -28,5 +34,23 @@ object Corng {
   private[epistest] def apply[A](f: Cofree[CorngOp, A]): Corng[A] =
     new Corng[A] {
       val cofree = f
+    }
+
+  implicit val CorngComonad: Comonad[Corng] =
+    new Comonad[Corng] {
+      def cobind[A, B](a: Corng[A])(f: Corng[A] => B) =
+        a coflatMap f
+      def cojoin[A](a: Corng[A]) =
+        a.coflatMap(z => z)
+      def map[A, B](a: Corng[A])(f: A => B) =
+        a map f
+      def copoint[A](a: Corng[A]) =
+        a.extract
+    }
+
+  implicit val CorngZap: Zap[Corng, Rng] =
+    new Zap[Corng, Rng] {
+      override def zapWith[A, B, C](c: Corng[A], r: Rng[B])(f: (A, B) => C) =
+        c.zapWith(r)(f)
     }
 }
