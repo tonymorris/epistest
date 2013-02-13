@@ -2,19 +2,27 @@ package org.epistest
 
 import scalaz._, Scalaz._
 
-import Gen._
-
 sealed trait Gen[+A] {
-  val value: Int => Rng[A]
+  val value: Size => Rng[(Size, Labels, A)]
 
-  def apply(a: Int): Rng[A] =
-    value(a)
+  def apply(a: Size): Rng[A] =
+    value(a) map (_._3)
 
   def map[X](f: A => X): Gen[X] =
-    Gen(value(_) map f)
+    Gen(value(_) map {
+      case (t, b, r) => (t, b, f(r))
+    })
 
   def flatMap[X](f: A => Gen[X]): Gen[X] =
-    Gen(a => value(a) flatMap (b => f(b) value a))
+    Gen(s =>
+      value(s) flatMap {
+        case (t, b, r) => {
+          f(r) value t map {
+            case (u, c, p) => (u, b ++ c, p)
+          }
+
+        }
+      })
 
   def ap[X](f: Gen[A => X]): Gen[X] =
     for {
@@ -28,9 +36,9 @@ sealed trait Gen[+A] {
       x <- q
     } yield (b, x)
 
-  def resume(a: Int): RngResume[A] =
+  def resume(a: Size): RngResume[(Size, Labels, A)] =
     value(a).resume
-
+       /*
   def run(a: Int): A =
     value(a).run
 
@@ -69,15 +77,16 @@ sealed trait Gen[+A] {
 
   def eitherS[X](x: Gen[X]): Gen[Either[A, X]] =
     Gen(s => apply(s) eitherS x(s))
-
+            */
 }
 
 object Gen {
-  private[epistest] def apply[A](v: Int => Rng[A]): Gen[A] =
+  private[epistest] def apply[A](v: Size => Rng[(Size, Labels, A)]): Gen[A] =
     new Gen[A] {
       val value = v
     }
 
+  /*
   def double: Gen[Double] =
     Rng.double.gen
 
@@ -266,4 +275,5 @@ object Gen {
       def zero =
         insert(M.zero)
     }
+    */
 }
