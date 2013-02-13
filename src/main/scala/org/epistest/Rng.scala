@@ -1,6 +1,6 @@
 package org.epistest
 
-import scalaz._, Free._, Scalaz._, NonEmptyList._, Digit._
+import scalaz._, Free._, Scalaz._, NonEmptyList._, Digit._, Leibniz._
 
 sealed trait Rng[+A] {
   val free: Free[RngOp, A]
@@ -101,6 +101,9 @@ sealed trait Rng[+A] {
 
   def eitherS[X](x: Rng[X]): Rng[Either[A, X]] =
     either(x) map (_.toEither)
+
+  def flatten[AA >: A, B](implicit f: AA === Rng[B]): Rng[B] =
+    flatMap(f)
 }
 
 object Rng {
