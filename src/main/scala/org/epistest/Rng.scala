@@ -76,6 +76,15 @@ sealed trait Rng[+A] {
       a <- this
       b <- x
     } yield S.append(a, b)
+  /*
+
+  def many: Rng[List[A]] =
+    int flatMap (n => sequence(List.fill(n)(this)))
+
+  def many1: Rng[NonEmptyList[A]] =
+    int flatMap (n => sequence(nel(this, List.fill(n)(this))))
+
+   */
          /*
   def many: Gen[List[A]] =
     Gen(z => for {
