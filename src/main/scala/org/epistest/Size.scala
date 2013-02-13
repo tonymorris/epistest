@@ -36,6 +36,12 @@ sealed trait Size {
 
   def dec: Size =
     this + (-1)
+
+  def forall(p: Int => Boolean): Boolean =
+    value forall p
+
+  def exists(p: Int => Boolean): Boolean =
+    value exists p
 }
 
 object Size {
