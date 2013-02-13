@@ -5,9 +5,9 @@ import scalaz._, Scalaz._
 import Gen._
 
 sealed trait Gen[+A] {
-  val value: Size => Rng[A]
+  val value: Int => Rng[A]
 
-  def apply(a: Size): Rng[A] =
+  def apply(a: Int): Rng[A] =
     value(a)
 
   def map[X](f: A => X): Gen[X] =
@@ -28,10 +28,10 @@ sealed trait Gen[+A] {
       x <- q
     } yield (b, x)
 
-  def resume(a: Size): RngResume[A] =
+  def resume(a: Int): RngResume[A] =
     value(a).resume
 
-  def run(a: Size): A =
+  def run(a: Int): A =
     value(a).run
 
   def mapr(f: RngOp ~> RngOp): Gen[A] =
@@ -73,8 +73,7 @@ sealed trait Gen[+A] {
 }
 
 object Gen {
-  type Size = Int
-  private[epistest] def apply[A](v: Size => Rng[A]): Gen[A] =
+  private[epistest] def apply[A](v: Int => Rng[A]): Gen[A] =
     new Gen[A] {
       val value = v
     }
