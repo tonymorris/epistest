@@ -3,7 +3,7 @@ package org.epistest
 import scalaz._, Scalaz._
 
 sealed trait Corng[+A] {
-  val cofree: Cofree[RngOp, A]
+  val cofree: Cofree[CorngOp, A]
 
   def map[B](f: A => B): Corng[B] =
     Corng(cofree map f)
@@ -17,15 +17,15 @@ sealed trait Corng[+A] {
   def extract: A =
     cofree.head
 
-  def scanr[B](f: (A, RngOp[Corng[B]]) => B): Corng[B] =
-    Corng(cofree scanr ((a, r: RngOp[Cofree[RngOp, B]]) => f(a, r map (Corng(_)))))
+  def scanr[B](f: (A, CorngOp[Corng[B]]) => B): Corng[B] =
+    Corng(cofree scanr ((a, r: CorngOp[Cofree[CorngOp, B]]) => f(a, r map (Corng(_)))))
 
   def inject[B](b: B): Corng[B] =
     Corng(cofree inject b)
 }
 
 object Corng {
-  private[epistest] def apply[A](f: Cofree[RngOp, A]): Corng[A] =
+  private[epistest] def apply[A](f: Cofree[CorngOp, A]): Corng[A] =
     new Corng[A] {
       val cofree = f
     }
