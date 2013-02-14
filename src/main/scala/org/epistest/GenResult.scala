@@ -7,6 +7,8 @@ sealed trait GenResult[+A] {
   def map[B](f: A => B): GenResult[B] =
     GenResult(size, f(value))
 
+  def coflatMap[B](f: GenResult[A] => B): GenResult[B] =
+    GenResult(size, f(this))
 }
 
 object GenResult {
