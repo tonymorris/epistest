@@ -39,3 +39,15 @@ sealed trait RngResume[+A] {
 case class RngCont[+A](x: RngOp[Rng[A]]) extends RngResume[A]
 case class RngTerm[+A](x: A) extends RngResume[A]
 
+object RngResume {
+  implicit val RngResumeFunctor: Functor[RngResume] =
+    new Functor[RngResume] {
+      def map[A, B](fa: RngResume[A])(f: A => B) =
+        fa map f
+    }
+
+  def distribute[A, B](a: RngResume[A => B]): A => RngResume[B] =
+    w => a map (_(w))
+
+}
+

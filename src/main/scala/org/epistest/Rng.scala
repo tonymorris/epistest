@@ -322,6 +322,9 @@ object Rng {
   def sequencePair[X, A](x: X, r: Rng[A]): Rng[(X, A)] =
     sequence[({type f[x] = (X, x)})#f, A]((x, r))
 
+  def distribute[A, B](a: Rng[A => B]): A => Rng[B] =
+    w => a map (_(w))
+
   def frequencyL[A](x: NonEmptyList[(Int, Rng[A])]): Rng[A] = {
     val t = x.foldLeft(0) {
       case (a, (b, _)) => a + b

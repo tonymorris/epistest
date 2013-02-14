@@ -21,6 +21,12 @@ sealed trait RngOp[+A] {
   def extract: A =
     next(bits)
 
+  def zap[B](x: CorngOp[B]): (A, B) =
+    (x zap this).swap
+
+  def zapWith[B, C](x: CorngOp[B])(f: A => B => C): C =
+    x.zapWith(this)(b => f(_)(b))
+
   def store: Store[Int, A] =
      Store(next, bits)
 }
@@ -35,6 +41,9 @@ object RngOp {
   def store[A](x: Store[Int, A]): RngOp[A] =
     apply(x.pos, x.put)
 
+  def distribute[A, B](a: RngOp[A => B]): A => RngOp[B] =
+    w => a map (_(w))
+
   implicit val RngOpComonad: Comonad[RngOp] =
     new Comonad[RngOp] {
       def map[A, B](a: RngOp[A])(f: A => B) =
@@ -47,8 +56,9 @@ object RngOp {
         x.duplicate
     }
 
-  def demote[A, B](a: RngOp[A => B]): A => RngOp[B] =
-    w =>
-      apply(a.bits, n => a.next(n)(w))
-
+  implicit val RngOpZap: Zap[RngOp, CorngOp] =
+    new Zap[RngOp, CorngOp] {
+      def zapWith[A, B, C](fa: RngOp[A], gb: CorngOp[B])(f: (A, B) => C) =
+        fa.zapWith(gb)(f.curried)
+    }
 }

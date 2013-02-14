@@ -24,6 +24,9 @@ object GenResult {
       val value = v
     }
 
+  def distribute[A, B](a: GenResult[A => B]): A => GenResult[B] =
+    w => a map (_(w))
+
   implicit val GenResultComonad: Comonad[GenResult] =
     new Comonad[GenResult] {
       def map[A, B](a: GenResult[A])(f: A => B) =
