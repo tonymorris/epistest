@@ -1,0 +1,4 @@
+* Generating functions
+    Perhaps: ?[A] => Gen[B] => Gen[A => B]
+
+* Serializing random data to allow replaying of test
