@@ -69,7 +69,7 @@ sealed trait Rng[+A] {
     free.go[AA](r => f(r map (Rng(_))).free)
 
   def gen: Gen[A] =
-    Gen(s => map(a => GenResult(s, a)))
+    Gen(_ => this)
 
   def |+|[AA >: A](x: Rng[AA])(implicit S: Semigroup[AA]): Rng[AA] =
     for {
@@ -85,7 +85,7 @@ sealed trait Rng[+A] {
                case Some(y) => chooseInt(0, y)
              }
         a <- sequence(List.fill(n)(this))
-      } yield GenResult(s, a)
+      } yield a
     )
 
   def many1: Gen[NonEmptyList[A]] =
@@ -97,7 +97,7 @@ sealed trait Rng[+A] {
              }
         z <- this
         a <- sequence(List.fill(n)(this))
-      } yield GenResult(s, nel(z, a))
+      } yield nel(z, a)
     )
 
   def option: Rng[Option[A]] =

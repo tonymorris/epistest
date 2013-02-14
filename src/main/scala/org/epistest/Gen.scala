@@ -3,17 +3,17 @@ package org.epistest
 import scalaz._, Scalaz._
 
 sealed trait Gen[+A] {
-  val value: Size => Rng[GenResult[A]]
+  val value: Size => Rng[A]
 
   def apply(a: Size): Rng[A] =
-    value(a) map (_.value)
+    value(a)
 
   def map[X](f: A => X): Gen[X] =
-    Gen(value(_) map (_ map f))
+    Gen(value(_) map f)
 
   def flatMap[X](f: A => Gen[X]): Gen[X] =
     Gen(s =>
-      value(s) flatMap (r => f(r.value) value r.size))
+      value(s) flatMap (f(_) value s))
 
   def ap[X](f: Gen[A => X]): Gen[X] =
     for {
@@ -27,19 +27,19 @@ sealed trait Gen[+A] {
       x <- q
     } yield (b, x)
 
-  def resume(a: Size): RngResume[GenResult[A]] =
+  def resume(a: Size): RngResume[A] =
     value(a).resume
 
-  def run(a: Size): GenResult[A] =
+  def run(a: Size): A =
     value(a).run
 
   def mapr(f: RngOp ~> RngOp): Gen[A] =
     Gen(value(_) mapr f)
 
-  def mapRng[X](f: Rng[GenResult[A]] => Rng[GenResult[X]]): Gen[X] =
+  def mapResult[X](f: Rng[A] => Rng[X]): Gen[X] =
     Gen(f compose value)
 
-  def flatMapRng[X](f: Rng[GenResult[A]] => Gen[X]): Gen[X] =
+  def flatMapRng[X](f: Rng[A] => Gen[X]): Gen[X] =
     Gen(a => f(value(a)) value a)
 
   def |+|[AA >: A](x: Gen[AA])(implicit S: Semigroup[AA]): Gen[AA] =
@@ -47,7 +47,7 @@ sealed trait Gen[+A] {
       a <- this
       b <- x
     } yield S.append(a, b)
-                                             /*
+
   def many: Gen[List[A]] =
     Gen(s => value(s) many s)
 
@@ -55,7 +55,7 @@ sealed trait Gen[+A] {
     Gen(s => value(s) many1 s)
 
   def option: Gen[Option[A]] =
-    mapRng(_.option)
+    Gen(value(_).option)
 
   def ***[X](x: Gen[X]): Gen[(A, X)] =
     zip(x)
@@ -68,17 +68,14 @@ sealed trait Gen[+A] {
 
   def eitherS[X](x: Gen[X]): Gen[Either[A, X]] =
     Gen(s => apply(s) eitherS x(s))
-            */
+
 }
 
 object Gen {
-  def apply[A](v: Size => Rng[GenResult[A]]): Gen[A] =
+  def apply[A](v: Size => Rng[A]): Gen[A] =
     new Gen[A] {
       val value = v
     }
-
-  def readsize[A](v: Size => Rng[A]): Gen[A] =
-    apply(s => v(s) map (a => GenResult(s, a)))
 
   def double: Gen[Double] =
     Rng.double.gen
@@ -165,46 +162,46 @@ object Gen {
     Rng.alphanumeric.many1
 
   def string: Gen[String] =
-    Gen.readsize(Rng.string)
+    Gen(Rng.string)
 
   def string1: Gen[String] =
-    Gen.readsize(Rng.string1)
+    Gen(Rng.string1)
 
   def upperstring: Gen[String] =
-    Gen.readsize(Rng.upperstring)
+    Gen(Rng.upperstring)
 
   def upperstring1: Gen[String] =
-    Gen.readsize(Rng.upperstring1)
+    Gen(Rng.upperstring1)
 
   def lowerstring: Gen[String] =
-    Gen.readsize(Rng.lowerstring)
+    Gen(Rng.lowerstring)
 
   def lowerstring1: Gen[String] =
-    Gen.readsize(Rng.lowerstring1)
+    Gen(Rng.lowerstring1)
 
   def alphastring: Gen[String] =
-    Gen.readsize(Rng.alphastring)
+    Gen(Rng.alphastring)
 
   def alphastring1: Gen[String] =
-    Gen.readsize(Rng.alphastring1)
+    Gen(Rng.alphastring1)
 
   def numericstring: Gen[String] =
-    Gen.readsize(Rng.numericstring)
+    Gen(Rng.numericstring)
 
   def numericstring1: Gen[String] =
-    Gen.readsize(Rng.numericstring1)
+    Gen(Rng.numericstring1)
 
   def alphanumericstring: Gen[String] =
-    Gen.readsize(Rng.alphanumericstring)
+    Gen(Rng.alphanumericstring)
 
   def alphanumericstring1: Gen[String] =
-    Gen.readsize(Rng.alphanumericstring1)
+    Gen(Rng.alphanumericstring1)
 
   def identifier: Gen[NonEmptyList[Char]] =
-    Gen.readsize(Rng.identifier)
+    Gen(Rng.identifier)
 
   def identifierstring: Gen[String] =
-    Gen.readsize(Rng.identifierstring)
+    Gen(Rng.identifierstring)
 
   def pair[A, B](a: Gen[A], b: Gen[B]): Gen[(A, B)] =
     a zip b
