@@ -10,12 +10,6 @@ sealed trait Rng[+A] {
   def map[B](f: A => B): Rng[B] =
     Rng(free map f)
 
-  def zap[B](c: Corng[A => B]): B =
-    free zap c.cofree
-
-  def zapWith[B, C](c: Corng[B])(f: (A, B) => C): C =
-    free.zapWith(c.cofree)(f)
-
   def flatMap[B](f: A => Rng[B]): Rng[B] =
     Rng(free flatMap (f(_).free))
 
@@ -41,22 +35,20 @@ sealed trait Rng[+A] {
     }
 
   def run: A = {
+    class NextBitsRandom extends java.util.Random {
+      def nextbits(bits: Int): Int =
+        super.next(bits)
+    }
     @annotation.tailrec
-    def loop(g: Rng[A], r: java.util.Random): A =
+    def loop(g: Rng[A], r: NextBitsRandom): A =
       g.resume match {
-        case RngCont(NextDouble(q)) =>
-          loop(q(r.nextDouble), r)
-        case RngCont(NextFloat(q)) =>
-          loop(q(r.nextFloat), r)
-        case RngCont(NextLong(q)) =>
-          loop(q(r.nextLong), r)
-        case RngCont(NextInt(q)) =>
-          loop(q(r.nextInt), r)
+        case RngCont(NextBits(b, q)) =>
+          loop(q(r nextbits b), r)
         case RngTerm(a) =>
           a
       }
 
-    loop(this, new java.util.Random)
+    loop(this, new NextBitsRandom)
   }
 
   def maph[G[+_]](f: RngOp ~> G)(implicit G: Functor[G]): Free[G, A] =
@@ -126,17 +118,26 @@ object Rng {
       val free = f
     }
 
+  def bits(n: Int): Rng[Int] =
+    NextBits(n, x => x).lift
+
   def double: Rng[Double] =
-    NextDouble(x => x).lift
+    for {
+      a <- bits(27)
+      b <- bits(26)
+    } yield (b.toLong << a) / (1.toLong << 53).toDouble
 
   def float: Rng[Float] =
-    NextFloat(x => x).lift
+    bits(24) map (_ / (1 << 24).toFloat)
 
   def long: Rng[Long] =
-    NextLong(x => x).lift
+    for {
+      a <- bits(32)
+      b <- bits(32)
+    } yield (a.toLong << 32) + b
 
   def int: Rng[Int] =
-    NextInt(x => x).lift
+    bits(32)
 
   def boolean: Rng[Boolean] =
     chooseInt(0, 1) map (_ == 0)
@@ -349,12 +350,6 @@ object Rng {
         a flatMap f
       def point[A](a: => A) =
         insert(a)
-    }
-
-  implicit val RngZap: Zap[Rng, Corng] =
-    new Zap[Rng, Corng] {
-      override def zapWith[A, B, C](r: Rng[A], c: Corng[B])(f: (A, B) => C) =
-        r.zapWith(c)(f)
     }
 
   implicit def RngSemigroup[A](implicit S: Semigroup[A]): Semigroup[Rng[A]] =
