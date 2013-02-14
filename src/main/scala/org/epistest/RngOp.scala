@@ -33,6 +33,12 @@ sealed trait RngOp[+A] {
 private case class NextBits[+A](b: Int, q: Int => A) extends RngOp[A]
 
 object RngOp {
+  def apply[A](b: Int, q: Int => A): RngOp[A] =
+    NextBits(b, q)
+
+  def store[A](x: Store[Int, A]): RngOp[A] =
+    NextBits(x.pos, x.put)
+
   implicit val RngOpFunctor: Functor[RngOp] =
     new Functor[RngOp] {
       def map[A, B](a: RngOp[A])(f: A => B) =
