@@ -24,6 +24,22 @@ sealed trait RngOp[+A] {
   def lift: Rng[A] =
     Rng(Suspend(map(Return(_))))
 
+  def coflatMap[B](f: RngOp[A] => B): RngOp[B] =
+    this match {
+      case NextBits(b, q) => {
+        NextBits(b, w => f(NextBits(b, q)))
+      }
+    }
+
+  def duplicate: RngOp[RngOp[A]] =
+    coflatMap(z => z)
+
+  def extract: A =
+    this match {
+      case NextBits(b, q) =>
+        q(b)
+    }
+
   def store: Store[Int, A] =
     this match {
       case NextBits(b, q) =>
@@ -39,10 +55,16 @@ object RngOp {
   def store[A](x: Store[Int, A]): RngOp[A] =
     NextBits(x.pos, x.put)
 
-  implicit val RngOpFunctor: Functor[RngOp] =
-    new Functor[RngOp] {
+  implicit val RngOpComonad: Comonad[RngOp] =
+    new Comonad[RngOp] {
       def map[A, B](a: RngOp[A])(f: A => B) =
         a map f
+      def cobind[A, B](a: RngOp[A])(f: RngOp[A] => B) =
+        a coflatMap f
+      def copoint[A](x: RngOp[A]) =
+        x.extract
+      def cojoin[A](x: RngOp[A]) =
+        x.duplicate
     }
 
   def demote[A, B](a: RngOp[A => B]): A => RngOp[B] =
