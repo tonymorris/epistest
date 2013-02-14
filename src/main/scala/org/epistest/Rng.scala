@@ -20,10 +20,10 @@ sealed trait Rng[+A] {
     } yield ff(aa)
 
   def zip[X](q: Rng[X]): Rng[(A, X)] =
-    for {
-      a <- this
-      x <- q
-    } yield (a, x)
+    zipWith(q)(a => (a, _))
+
+  def zipWith[B, C](r: Rng[B])(f: A => B => C): Rng[C] =
+    r.ap(map(f))
 
   def foldRun[B, AA >: A](b: B)(f: (B, RngOp[Rng[AA]]) => (B, Rng[AA])): (B, AA) =
     free.foldRun[B, AA](b)((bb, t) => f(bb, t map (Rng(_))) :-> (_.free))

@@ -1,6 +1,6 @@
 package org.epistest
 
-import scalaz._, Scalaz._
+import scalaz._, Scalaz._, Leibniz._
 
 sealed trait Gen[+A] {
   val value: Size => Rng[GenResult[A]]
@@ -22,10 +22,10 @@ sealed trait Gen[+A] {
     } yield ff(aa)
 
   def zip[X](q: Gen[X]): Gen[(A, X)] =
-    for {
-      b <- this
-      x <- q
-    } yield (b, x)
+    zipWith(q)(a => (a, _))
+
+  def zipWith[B, C](r: Gen[B])(f: A => B => C): Gen[C] =
+    r.ap(map(f))
 
   def resume(a: Size): RngResume[A] =
     apply(a).resume
@@ -69,6 +69,8 @@ sealed trait Gen[+A] {
   def eitherS[X](x: Gen[X]): Gen[Either[A, X]] =
     Gen.readsize(s => apply(s) eitherS x(s))
 
+  def flatten[AA >: A, B](implicit f: AA === Gen[B]): Gen[B] =
+    flatMap(f)
 }
 
 object Gen {
