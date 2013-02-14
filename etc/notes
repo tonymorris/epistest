@@ -2,3 +2,5 @@
     Perhaps: ?[A] => Gen[B] => Gen[A => B]
 
 * Serializing random data to allow replaying of test
+
+* nextBit from which all others derive, see java.util.Random
