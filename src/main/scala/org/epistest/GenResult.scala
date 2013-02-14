@@ -2,17 +2,17 @@ package org.epistest
 
 sealed trait GenResult[+A] {
   val size: Size
-  val rng: Rng[A]
+  val value: A
 
   def map[B](f: A => B): GenResult[B] =
-    GenResult(size, rng map f)
+    GenResult(size, f(value))
 
 }
 
 object GenResult {
-  def apply[A](s: Size, r: Rng[A]): GenResult[A] =
+  def apply[A](s: Size, v: A): GenResult[A] =
     new GenResult[A] {
       val size = s
-      val rng = r
+      val value = v
     }
 }
