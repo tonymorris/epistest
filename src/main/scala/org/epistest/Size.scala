@@ -42,6 +42,7 @@ sealed trait Size {
 
   def exists(p: Int => Boolean): Boolean =
     value exists p
+
 }
 
 object Size {

@@ -89,6 +89,18 @@ object Gen {
   def readseed[A](v: Seed => Rng[A]): Gen[A] =
     read((_, t) => v(t))
 
+  def getsize: Gen[Size] =
+    readsize(Rng.insert)
+
+  def putsize(s: Size): Gen[Unit] =
+    apply((_, t) => Rng.insert(GenResult(s, t, ())))
+
+  def getseed: Gen[Seed] =
+    readseed(Rng.insert)
+
+  def putseed(s: Seed): Gen[Unit] =
+    apply((d, _) => Rng.insert(GenResult(d, s, ())))
+
   def double: Gen[Double] =
     Rng.double.gen
 
