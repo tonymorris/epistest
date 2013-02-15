@@ -43,8 +43,8 @@ sealed trait Rng[+A] {
     @annotation.tailrec
     def loop(g: Rng[A], r: NextBitsRandom): A =
       g.resume match {
-        case RngCont(op) =>
-          loop(op.next(r nextbits op.bits), r)
+        case RngCont(NextBits(b, n)) =>
+          loop(n(r nextbits b), r)
         case RngTerm(a) =>
           a
       }

@@ -1,7 +1,7 @@
 package org.epistest
 
 import scalaz._
-
+                                         /*
 sealed trait Corng[+A] {
   val cofree: Cofree[CorngOp, A]
 
@@ -56,3 +56,4 @@ object Corng {
     }
 
 }
+                                           */

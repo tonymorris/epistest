@@ -1,7 +1,7 @@
 package org.epistest
 
 import scalaz._, Leibniz._
-
+             /*
 sealed trait CorngOp[+A] {
   val run: Int => (A, Int)
 
@@ -109,3 +109,4 @@ object CorngOp {
         fa.zapWith(gb)(f.curried)
     }
 }
+               */
