@@ -42,6 +42,9 @@ sealed trait Size {
 
   def exists(p: Int => Boolean): Boolean =
     value exists p
+
+  def result[A](a: A): GenResult[A] =
+    GenResult(this, a)
 }
 
 object Size {
