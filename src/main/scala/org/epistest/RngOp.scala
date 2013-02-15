@@ -3,8 +3,6 @@ package org.epistest
 import scalaz._, Free._
 
 sealed trait RngOp[+A] {
-  import RngOp._
-
   def map[B](f: A => B): RngOp[B] =
     this match {
       case NextBits(b, n) => NextBits(b, f compose n)
