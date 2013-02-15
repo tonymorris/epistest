@@ -170,47 +170,47 @@ object Rng {
   def digit: Rng[Digit] =
     chooseInt(0, 9) map mod10Digit
 
-  def digits(z: Size): Rng[List[Digit]] =
-    digit many z
+  def digits(z: Size, t: Seed): Rng[List[Digit]] =
+    digit many (z, t)
 
-  def digits1(z: Size): Rng[NonEmptyList[Digit]] =
-    digit many1 z
+  def digits1(z: Size, t: Seed): Rng[NonEmptyList[Digit]] =
+    digit many1 (z, t)
 
   def numeric: Rng[Char] =
     digit map (_.toChar)
 
-  def numerics(z: Size): Rng[List[Char]] =
-    numeric many z
+  def numerics(z: Size, t: Seed): Rng[List[Char]] =
+    numeric many (z, t)
 
-  def numerics1(z: Size): Rng[NonEmptyList[Char]] =
-    numeric many1 z
+  def numerics1(z: Size, t: Seed): Rng[NonEmptyList[Char]] =
+    numeric many1 (z, t)
 
   def char: Rng[Char] =
     int map (_.toChar)
 
-  def chars(z: Size): Rng[List[Char]] =
-    char many z
+  def chars(z: Size, t: Seed): Rng[List[Char]] =
+    char many (z, t)
 
-  def chars1(z: Size): Rng[NonEmptyList[Char]] =
-    char many1 z
+  def chars1(z: Size, t: Seed): Rng[NonEmptyList[Char]] =
+    char many1 (z, t)
 
   def upper: Rng[Char] =
     chooseInt(65, 90) map (_.toChar)
 
-  def uppers(z: Size): Rng[List[Char]] =
-    upper many z
+  def uppers(z: Size, t: Seed): Rng[List[Char]] =
+    upper many (z, t)
 
-  def uppers1(z: Size): Rng[NonEmptyList[Char]] =
-    upper many1 z
+  def uppers1(z: Size, t: Seed): Rng[NonEmptyList[Char]] =
+    upper many1 (z, t)
 
   def lower: Rng[Char] =
     chooseInt(97, 122) map (_.toChar)
 
-  def lowers(z: Size): Rng[List[Char]] =
-    lower many z
+  def lowers(z: Size, t: Seed): Rng[List[Char]] =
+    lower many (z, t)
 
-  def lowers1(z: Size): Rng[NonEmptyList[Char]] =
-    lower many1 z
+  def lowers1(z: Size, t: Seed): Rng[NonEmptyList[Char]] =
+    lower many1 (z, t)
 
   def alpha: Rng[Char] =
     upper +++ lower map {
@@ -218,11 +218,11 @@ object Rng {
       case \/-(c) => c
     }
 
-  def alphas(z: Size): Rng[List[Char]] =
-    alpha many z
+  def alphas(z: Size, t: Seed): Rng[List[Char]] =
+    alpha many (z, t)
 
-  def alphas1(z: Size): Rng[NonEmptyList[Char]] =
-    alpha many1 z
+  def alphas1(z: Size, t: Seed): Rng[NonEmptyList[Char]] =
+    alpha many1 (z, t)
 
   def alphanumeric: Rng[Char] =
     chooseInt(0, 61) map (c =>
@@ -233,56 +233,56 @@ object Rng {
       else
         c - 4).toChar)
 
-  def alphanumerics(z: Size): Rng[List[Char]] =
-    alphanumeric many z
+  def alphanumerics(z: Size, t: Seed): Rng[List[Char]] =
+    alphanumeric many (z, t)
 
-  def alphanumerics1(z: Size): Rng[NonEmptyList[Char]] =
-    alphanumeric many1 z
+  def alphanumerics1(z: Size, t: Seed): Rng[NonEmptyList[Char]] =
+    alphanumeric many1 (z, t)
 
-  def string(z: Size): Rng[String] =
-    chars(z) map (_.mkString)
+  def string(z: Size, t: Seed): Rng[String] =
+    chars(z, t) map (_.mkString)
 
-  def string1(z: Size): Rng[String] =
-    chars1(z) map (_.toList.mkString)
+  def string1(z: Size, t: Seed): Rng[String] =
+    chars1(z, t) map (_.toList.mkString)
 
-  def upperstring(z: Size): Rng[String] =
-    uppers(z) map (_.mkString)
+  def upperstring(z: Size, t: Seed): Rng[String] =
+    uppers(z, t) map (_.mkString)
 
-  def upperstring1(z: Size): Rng[String] =
-    uppers1(z) map (_.toList.mkString)
+  def upperstring1(z: Size, t: Seed): Rng[String] =
+    uppers1(z, t) map (_.toList.mkString)
 
-  def lowerstring(z: Size): Rng[String] =
-    lowers(z) map (_.mkString)
+  def lowerstring(z: Size, t: Seed): Rng[String] =
+    lowers(z, t) map (_.mkString)
 
-  def lowerstring1(z: Size): Rng[String] =
-    lowers1(z) map (_.toList.mkString)
+  def lowerstring1(z: Size, t: Seed): Rng[String] =
+    lowers1(z, t) map (_.toList.mkString)
 
-  def alphastring(z: Size): Rng[String] =
-    alphas(z) map (_.mkString)
+  def alphastring(z: Size, t: Seed): Rng[String] =
+    alphas(z, t) map (_.mkString)
 
-  def alphastring1(z: Size): Rng[String] =
-    alphas1(z) map (_.toList.mkString)
+  def alphastring1(z: Size, t: Seed): Rng[String] =
+    alphas1(z, t) map (_.toList.mkString)
 
-  def numericstring(z: Size): Rng[String] =
-    numerics(z) map (_.mkString)
+  def numericstring(z: Size, t: Seed): Rng[String] =
+    numerics(z, t) map (_.mkString)
 
-  def numericstring1(z: Size): Rng[String] =
-    numerics1(z) map (_.toList.mkString)
+  def numericstring1(z: Size, t: Seed): Rng[String] =
+    numerics1(z, t) map (_.toList.mkString)
 
-  def alphanumericstring(z: Size): Rng[String] =
-    alphanumerics(z) map (_.mkString)
+  def alphanumericstring(z: Size, t: Seed): Rng[String] =
+    alphanumerics(z, t) map (_.mkString)
 
-  def alphanumericstring1(z: Size): Rng[String] =
-    alphanumerics1(z) map (_.toList.mkString)
+  def alphanumericstring1(z: Size, t: Seed): Rng[String] =
+    alphanumerics1(z, t) map (_.toList.mkString)
 
-  def identifier(z: Size): Rng[NonEmptyList[Char]] =
+  def identifier(z: Size, t: Seed): Rng[NonEmptyList[Char]] =
     for {
       a <- alpha
-      b <- alphanumerics(if(z exists (_ < 1)) z.inc else z.dec)
+      b <- alphanumerics(if(z exists (_ < 1)) z.inc else z.dec, t)
     } yield nel(a, b)
 
-  def identifierstring(z: Size): Rng[String] =
-    identifier(z) map (_.toList.mkString)
+  def identifierstring(z: Size, t: Seed): Rng[String] =
+    identifier(z, t) map (_.toList.mkString)
 
   def pair[A, B](a: Rng[A], b: Rng[B]): Rng[(A, B)] =
     a zip b
