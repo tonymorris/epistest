@@ -17,7 +17,7 @@ sealed trait RngOp[+A] {
   def coflatMap[B](f: RngOp[A] => B): RngOp[B] =
     this match {
       case NextBits(b, n) => NextBits(b, w => f(NextBits(w, n)))
-      case SetSeed(b, n) => SetSeed(b, () => f(SetSeed(b, n)))
+      case s@SetSeed(b, n) => SetSeed(b, () => f(s))
     }
 
   def duplicate: RngOp[RngOp[A]] =
