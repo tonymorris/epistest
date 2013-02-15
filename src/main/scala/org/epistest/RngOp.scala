@@ -28,13 +28,7 @@ sealed trait RngOp[+A] {
       case NextBits(b, n) => n(b)
       case SetSeed(_, n) => n()
     }
-/*
-  def zap[B](x: CorngOp[B]): (A, B) =
-    (x zap this).swap
 
-  def zapWith[B, C](x: CorngOp[B])(f: A => B => C): C =
-    x.zapWith(this)(b => f(_)(b))
-  */
   def store: Option[Store[Int, A]] =
     this match {
       case NextBits(b, n) => Some(Store(n, b))
@@ -68,11 +62,4 @@ object RngOp {
       def cojoin[A](x: RngOp[A]) =
         x.duplicate
     }
-                        /*
-  implicit val RngOpZap: Zap[RngOp, CorngOp] =
-    new Zap[RngOp, CorngOp] {
-      def zapWith[A, B, C](fa: RngOp[A], gb: CorngOp[B])(f: (A, B) => C) =
-        fa.zapWith(gb)(f.curried)
-    }
-    */
 }
