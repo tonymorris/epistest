@@ -34,12 +34,7 @@ sealed trait Rng[+A] {
       case \/-(x) => RngTerm(x)
     }
 
-  def run(s: Seed = Seed.defaultseed): A = {
-    class SeededNextBitsRandom(d: Long) extends java.util.Random(d) {
-      def nextbits(bits: Int): Int =
-        super.next(bits)
-    }
-
+  def run: A = {
     class NextBitsRandom extends java.util.Random {
       def nextbits(bits: Int): Int =
         super.next(bits)
@@ -54,20 +49,7 @@ sealed trait Rng[+A] {
           a
       }
 
-    @annotation.tailrec
-    def seededloop(g: Rng[A], r: SeededNextBitsRandom): A =
-      g.resume match {
-        case RngCont(op) =>
-          seededloop(op.next(r nextbits op.bits), r)
-        case RngTerm(a) =>
-          a
-      }
-
-    s.option match {
-      case None => loop(this, new NextBitsRandom)
-      case Some(t) => seededloop(this, new SeededNextBitsRandom(t))
-    }
-
+    loop(this, new NextBitsRandom)
   }
 
   def maph[G[+_]](f: RngOp ~> G)(implicit G: Functor[G]): Free[G, A] =

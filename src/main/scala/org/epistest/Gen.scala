@@ -30,8 +30,8 @@ sealed trait Gen[+A] {
   def resume(a: Size): RngResume[A] =
     apply(a).resume
 
-  def run(a: Size, t: Seed = Seed.defaultseed): A =
-    apply(a) run t
+  def run(a: Size): A =
+    apply(a).run
 
   def mapr(f: RngOp ~> RngOp): Gen[A] =
     Gen(value(_) mapr f)
