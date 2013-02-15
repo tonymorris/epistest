@@ -13,7 +13,7 @@ sealed trait RngOp[+A] {
     Rng(Suspend(map(Return(_))))
 
   def coflatMap[B](f: RngOp[A] => B): RngOp[B] =
-    RngOp(bits, w => f(RngOp(bits, next)))
+    RngOp(bits, w => f(RngOp(w, next)))
 
   def duplicate: RngOp[RngOp[A]] =
     coflatMap(z => z)
