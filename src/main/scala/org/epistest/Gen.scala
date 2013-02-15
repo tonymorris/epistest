@@ -82,6 +82,12 @@ object Gen {
   def read[A](v: Size => Rng[A]): Gen[A] =
     apply(s => v(s) map (GenResult(s, _)))
 
+  def get: Gen[Size] =
+    read(Rng.insert)
+
+  def put(s: Size): Gen[Unit] =
+    apply(_ => Rng.insert(GenResult(s, ())))
+
   def double: Gen[Double] =
     Rng.double.gen
 

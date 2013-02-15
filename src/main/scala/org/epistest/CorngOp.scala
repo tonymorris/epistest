@@ -90,7 +90,7 @@ object CorngOp {
     apply(n => (n, n))
 
   def put(n: Int): CorngOp[Unit] =
-    apply(n => ((), n))
+    apply(_ => ((), n))
 
   def distribute[A, B](a: CorngOp[A => B]): A => CorngOp[B] =
     w => a map (_(w))
