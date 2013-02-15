@@ -31,7 +31,7 @@ sealed trait Gen[+A] {
     apply(a).resume
 
   def run(a: Size): A =
-    apply(a).run
+    apply(a).run() // todo
 
   def mapr(f: RngOp ~> RngOp): Gen[A] =
     Gen(value(_) mapr f)
