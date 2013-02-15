@@ -16,7 +16,7 @@ sealed trait Size {
   def has: Boolean =
     value.isDefined
 
-  def or(s: => Size): Size =
+  def |(s: => Size): Size =
     if (value.isDefined)
       this
     else
@@ -25,10 +25,10 @@ sealed trait Size {
   def withsize(k: Int => Int): Size =
     size(value map k)
 
-  def +(n: Int): Size =
+  def +(n: => Int): Size =
     withsize(_ + n)
 
-  def *(n: Int): Size =
+  def *(n: => Int): Size =
     withsize(_ * n)
 
   def inc: Size =
@@ -59,7 +59,7 @@ object Size {
   implicit val SizeMonoid: Monoid[Size] =
     new Monoid[Size] {
       def append(s1: Size, s2: => Size) =
-        s1 or s2
+        s1 | s2
       def zero =
         nosize
     }
