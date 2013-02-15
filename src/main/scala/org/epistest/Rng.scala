@@ -61,7 +61,7 @@ sealed trait Rng[+A] {
     free.go[AA](r => f(r map (Rng(_))).free)
 
   def gen: Gen[A] =
-    Gen.readsize(_ => this)
+    Gen.read(_ => this)
 
   def |+|[AA >: A](x: Rng[AA])(implicit S: Semigroup[AA]): Rng[AA] =
     for {
@@ -70,7 +70,7 @@ sealed trait Rng[+A] {
     } yield S.append(a, b)
 
   def many: Gen[List[A]] =
-    Gen.readsize(s =>
+    Gen.read(s =>
       for {
         n <- s.value match {
                case None => int
@@ -81,7 +81,7 @@ sealed trait Rng[+A] {
     )
 
   def many1: Gen[NonEmptyList[A]] =
-    Gen.readsize(s =>
+    Gen.read(s =>
       for {
         n <- s.value match {
                case None => int

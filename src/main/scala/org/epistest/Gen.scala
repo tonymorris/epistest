@@ -49,25 +49,25 @@ sealed trait Gen[+A] {
     } yield S.append(a, b)
 
   def many: Gen[List[A]] =
-    Gen.readsize(s => apply(s) many s)
+    Gen.read(s => apply(s) many s)
 
   def many1: Gen[NonEmptyList[A]] =
-    Gen.readsize(s => apply(s) many1 s)
+    Gen.read(s => apply(s) many1 s)
 
   def option: Gen[Option[A]] =
-    Gen.readsize(apply(_).option)
+    Gen.read(apply(_).option)
 
   def ***[X](x: Gen[X]): Gen[(A, X)] =
     zip(x)
 
   def either[X](x: Gen[X]): Gen[A \/ X] =
-    Gen.readsize(s => apply(s) either x(s))
+    Gen.read(s => apply(s) either x(s))
 
   def +++[X](x: Gen[X]): Gen[A \/ X] =
     either(x)
 
   def eitherS[X](x: Gen[X]): Gen[Either[A, X]] =
-    Gen.readsize(s => apply(s) eitherS x(s))
+    Gen.read(s => apply(s) eitherS x(s))
 
   def flatten[AA >: A, B](implicit f: AA === Gen[B]): Gen[B] =
     flatMap(f)
@@ -79,7 +79,7 @@ object Gen {
       val value = v
     }
 
-  def readsize[A](v: Size => Rng[A]): Gen[A] =
+  def read[A](v: Size => Rng[A]): Gen[A] =
     apply(s => v(s) map (GenResult(s, _)))
 
   def double: Gen[Double] =
@@ -167,46 +167,46 @@ object Gen {
     Rng.alphanumeric.many1
 
   def string: Gen[String] =
-    Gen.readsize(Rng.string)
+    Gen.read(Rng.string)
 
   def string1: Gen[String] =
-    Gen.readsize(Rng.string1)
+    Gen.read(Rng.string1)
 
   def upperstring: Gen[String] =
-    Gen.readsize(Rng.upperstring)
+    Gen.read(Rng.upperstring)
 
   def upperstring1: Gen[String] =
-    Gen.readsize(Rng.upperstring1)
+    Gen.read(Rng.upperstring1)
 
   def lowerstring: Gen[String] =
-    Gen.readsize(Rng.lowerstring)
+    Gen.read(Rng.lowerstring)
 
   def lowerstring1: Gen[String] =
-    Gen.readsize(Rng.lowerstring1)
+    Gen.read(Rng.lowerstring1)
 
   def alphastring: Gen[String] =
-    Gen.readsize(Rng.alphastring)
+    Gen.read(Rng.alphastring)
 
   def alphastring1: Gen[String] =
-    Gen.readsize(Rng.alphastring1)
+    Gen.read(Rng.alphastring1)
 
   def numericstring: Gen[String] =
-    Gen.readsize(Rng.numericstring)
+    Gen.read(Rng.numericstring)
 
   def numericstring1: Gen[String] =
-    Gen.readsize(Rng.numericstring1)
+    Gen.read(Rng.numericstring1)
 
   def alphanumericstring: Gen[String] =
-    Gen.readsize(Rng.alphanumericstring)
+    Gen.read(Rng.alphanumericstring)
 
   def alphanumericstring1: Gen[String] =
-    Gen.readsize(Rng.alphanumericstring1)
+    Gen.read(Rng.alphanumericstring1)
 
   def identifier: Gen[NonEmptyList[Char]] =
-    Gen.readsize(Rng.identifier)
+    Gen.read(Rng.identifier)
 
   def identifierstring: Gen[String] =
-    Gen.readsize(Rng.identifierstring)
+    Gen.read(Rng.identifierstring)
 
   def pair[A, B](a: Gen[A], b: Gen[B]): Gen[(A, B)] =
     a zip b
