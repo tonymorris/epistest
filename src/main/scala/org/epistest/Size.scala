@@ -25,10 +25,10 @@ sealed trait Size {
   def withsize(k: Int => Int): Size =
     size(value map k)
 
-  def +(n: Int): Size =
+  def +(n: => Int): Size =
     withsize(_ + n)
 
-  def *(n: Int): Size =
+  def *(n: => Int): Size =
     withsize(_ * n)
 
   def inc: Size =
