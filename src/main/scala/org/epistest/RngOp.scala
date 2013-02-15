@@ -3,9 +3,12 @@ package org.epistest
 import scalaz._, Free._
 
 sealed trait RngOp[+A] {
+  import RngOp._
+
   def map[B](f: A => B): RngOp[B] =
     this match {
-      case NextBits(b, n) => RngOp(b, f compose n)
+      case NextBits(b, n) => NextBits(b, f compose n)
+      case SetSeed(b, n) => SetSeed(b, () => f(n()))
     }
 
   def lift: Rng[A] =
@@ -13,7 +16,8 @@ sealed trait RngOp[+A] {
 
   def coflatMap[B](f: RngOp[A] => B): RngOp[B] =
     this match {
-      case NextBits(b, n) => RngOp(b, w => f(RngOp(b, n)))
+      case NextBits(b, n) => NextBits(b, w => f(NextBits(b, n)))
+      case SetSeed(b, n) => SetSeed(b, () => f(SetSeed(b, n)))
     }
 
   def duplicate: RngOp[RngOp[A]] =
@@ -22,6 +26,7 @@ sealed trait RngOp[+A] {
   def extract: A =
     this match {
       case NextBits(b, n) => n(b)
+      case SetSeed(_, n) => n()
     }
 /*
   def zap[B](x: CorngOp[B]): (A, B) =
@@ -30,19 +35,24 @@ sealed trait RngOp[+A] {
   def zapWith[B, C](x: CorngOp[B])(f: A => B => C): C =
     x.zapWith(this)(b => f(_)(b))
   */
-  def store: Store[Int, A] =
+  def store: Option[Store[Int, A]] =
     this match {
-      case NextBits(b, n) => Store(n, b)
+      case NextBits(b, n) => Some(Store(n, b))
+      case SetSeed(_, _) => None
     }
 }
 private case class NextBits[+A](b: Int, n: Int => A) extends RngOp[A]
+private case class SetSeed[+A](b: Long, n: () => A) extends RngOp[A]
 
 object RngOp {
-  def apply[A](b: Int, n: Int => A): RngOp[A] =
+  def nextbits[A](b: Int, n: Int => A): RngOp[A] =
     NextBits(b, n)
 
+  def setseed[A](b: Long, a: => A): RngOp[A] =
+    SetSeed(b, () => a)
+
   def store[A](x: Store[Int, A]): RngOp[A] =
-    apply(x.pos, x.put)
+    nextbits(x.pos, x.put)
 
   def distribute[A, B](a: RngOp[A => B]): A => RngOp[B] =
     w => a map (_(w))

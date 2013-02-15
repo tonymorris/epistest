@@ -11,7 +11,7 @@ sealed trait CorngOp[+A] {
   def value(n: Int): A =
     run(n)._1
 
-  def bits(n: Int): Int =
+  def nextbits(n: Int): Int =
     run(n)._2
 
   def map[B](f: A => B): CorngOp[B] =
@@ -42,7 +42,7 @@ sealed trait CorngOp[+A] {
     zapWith(x)(a => (a, _))
 
   def zapWith[B, C](x: RngOp[B])(f: A => B => C): C = {
-    val (a, o) = run(x.bits)
+    val (a, o) = run(x.nextbits)
     f(a)(x next o)
   }
 

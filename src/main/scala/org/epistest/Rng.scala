@@ -45,6 +45,11 @@ sealed trait Rng[+A] {
       g.resume match {
         case RngCont(NextBits(b, n)) =>
           loop(n(r nextbits b), r)
+        case RngCont(SetSeed(b, n)) =>
+          loop({
+            r setSeed b
+            n()
+          }, r)
         case RngTerm(a) =>
           a
       }
@@ -119,26 +124,29 @@ object Rng {
       val free = f
     }
 
-  def bits(n: Int): Rng[Int] =
-    RngOp(n, x => x).lift
+  def nextbits(n: Int): Rng[Int] =
+    RngOp.nextbits(n, x => x).lift
+
+  def setseed(s: Long): Rng[Unit] =
+    RngOp.setseed(s, ()).lift
 
   def double: Rng[Double] =
     for {
-      a <- bits(27)
-      b <- bits(26)
+      a <- nextbits(27)
+      b <- nextbits(26)
     } yield (b.toLong << a) / (1.toLong << 53).toDouble
 
   def float: Rng[Float] =
-    bits(24) map (_ / (1 << 24).toFloat)
+    nextbits(24) map (_ / (1 << 24).toFloat)
 
   def long: Rng[Long] =
     for {
-      a <- bits(32)
-      b <- bits(32)
+      a <- nextbits(32)
+      b <- nextbits(32)
     } yield (a.toLong << 32) + b
 
   def int: Rng[Int] =
-    bits(32)
+    nextbits(32)
 
   def boolean: Rng[Boolean] =
     chooseInt(0, 1) map (_ == 0)
