@@ -89,7 +89,7 @@ sealed trait Rng[+A] {
     } yield S.append(a, b)
 
   def many: Gen[List[A]] =
-    Gen.read((s, _) =>
+    Gen.readsize(s =>
       for {
         n <- s.value match {
                case None => int
@@ -100,7 +100,7 @@ sealed trait Rng[+A] {
     )
 
   def many1: Gen[NonEmptyList[A]] =
-    Gen.read((s, _) =>
+    Gen.readsize(s =>
       for {
         n <- s.value match {
                case None => int

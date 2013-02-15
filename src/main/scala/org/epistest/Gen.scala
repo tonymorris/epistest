@@ -30,6 +30,7 @@ sealed trait Gen[+A] {
   def resume(a: Size, t: Seed): RngResume[A] =
     apply(a, t).resume
 
+  // todo
   def run(a: Size, t: Seed): A =
     apply(a, t) run t
 
