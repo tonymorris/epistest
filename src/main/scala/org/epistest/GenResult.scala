@@ -4,25 +4,23 @@ import scalaz._
 
 sealed trait GenResult[+A] {
   val size: Size
-  val seed: Seed
   val value: A
 
   def map[B](f: A => B): GenResult[B] =
-    GenResult(size, seed, f(value))
+    GenResult(size, f(value))
 
   def coflatMap[B](f: GenResult[A] => B): GenResult[B] =
-    GenResult(size, seed, f(this))
+    GenResult(size, f(this))
 
   def duplicate: GenResult[GenResult[A]] =
-    GenResult(size, seed, GenResult(size, seed, value))
+    GenResult(size, GenResult(size, value))
 
 }
 
 object GenResult {
-  def apply[A](s: Size, t: Seed, v: A): GenResult[A] =
+  def apply[A](s: Size, v: A): GenResult[A] =
     new GenResult[A] {
       val size = s
-      val seed = t
       val value = v
     }
 

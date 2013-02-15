@@ -3,17 +3,17 @@ package org.epistest
 import scalaz._, Scalaz._, Leibniz._
 
 sealed trait Gen[+A] {
-  val value: (Size, Seed) => Rng[GenResult[A]]
+  val value: Size => Rng[GenResult[A]]
 
-  def apply(a: Size, t: Seed): Rng[A] =
-    value(a, t) map (_.value)
+  def apply(a: Size): Rng[A] =
+    value(a) map (_.value)
 
   def map[X](f: A => X): Gen[X] =
-    Gen(value(_, _) map (_ map f))
+    Gen(value(_) map (_ map f))
 
   def flatMap[X](f: A => Gen[X]): Gen[X] =
-    Gen((s, t) =>
-      value(s, t) flatMap (a => f(a.value) value (a.size, a.seed)))
+    Gen(s =>
+      value(s) flatMap (a => f(a.value) value a.size))
 
   def ap[X](f: Gen[A => X]): Gen[X] =
     for {
@@ -27,21 +27,20 @@ sealed trait Gen[+A] {
   def zipWith[B, C](r: Gen[B])(f: A => B => C): Gen[C] =
     r.ap(map(f))
 
-  def resume(a: Size, t: Seed): RngResume[A] =
-    apply(a, t).resume
+  def resume(a: Size): RngResume[A] =
+    apply(a).resume
 
-  // todo
-  def run(a: Size, t: Seed): A =
-    apply(a, t) run t
+  def run(a: Size, t: Seed = Seed.defaultseed): A =
+    apply(a) run t
 
   def mapr(f: RngOp ~> RngOp): Gen[A] =
-    Gen(value(_, _) mapr f)
+    Gen(value(_) mapr f)
 
   def mapResult[X](f: GenResult[A] => GenResult[X]): Gen[X] =
-    Gen(value(_, _) map f)
+    Gen(value(_) map f)
 
   def flatMapRng[X](f: Rng[GenResult[A]] => Gen[X]): Gen[X] =
-    Gen((a, t) => f(value(a, t)) value (a, t))
+    Gen(a => f(value(a)) value a)
 
   def |+|[AA >: A](x: Gen[AA])(implicit S: Semigroup[AA]): Gen[AA] =
     for {
@@ -50,25 +49,25 @@ sealed trait Gen[+A] {
     } yield S.append(a, b)
 
   def many: Gen[List[A]] =
-    Gen.read((s, t) => apply(s, t) many (s, t))
+    Gen.read(s => apply(s) many s)
 
   def many1: Gen[NonEmptyList[A]] =
-    Gen.read((s, t) => apply(s, t) many1 (s, t))
+    Gen.read(s => apply(s) many1 s)
 
   def option: Gen[Option[A]] =
-    Gen.read(apply(_, _).option)
+    Gen.read(apply(_).option)
 
   def ***[X](x: Gen[X]): Gen[(A, X)] =
     zip(x)
 
   def either[X](x: Gen[X]): Gen[A \/ X] =
-    Gen.read((s, t) => apply(s, t) either x(s, t))
+    Gen.read(s => apply(s) either x(s))
 
   def +++[X](x: Gen[X]): Gen[A \/ X] =
     either(x)
 
   def eitherS[X](x: Gen[X]): Gen[Either[A, X]] =
-    Gen.read((s, t) => apply(s, t) eitherS x(s, t))
+    Gen.read(s => apply(s) eitherS x(s))
 
   def flatten[AA >: A, B](implicit f: AA === Gen[B]): Gen[B] =
     flatMap(f)
@@ -76,31 +75,19 @@ sealed trait Gen[+A] {
 }
 
 object Gen {
-  def apply[A](v: (Size, Seed) => Rng[GenResult[A]]): Gen[A] =
+  def apply[A](v: Size => Rng[GenResult[A]]): Gen[A] =
     new Gen[A] {
       val value = v
     }
 
-  def read[A](v: (Size, Seed) => Rng[A]): Gen[A] =
-    apply((s, t) => v(s, t) map (GenResult(s, t, _)))
+  def read[A](v: Size => Rng[A]): Gen[A] =
+    apply(s => v(s) map (GenResult(s, _)))
 
-  def readsize[A](v: Size => Rng[A]): Gen[A] =
-    read((s, _) => v(s))
+  def get: Gen[Size] =
+    read(Rng.insert)
 
-  def readseed[A](v: Seed => Rng[A]): Gen[A] =
-    read((_, t) => v(t))
-
-  def getsize: Gen[Size] =
-    readsize(Rng.insert)
-
-  def putsize(s: Size): Gen[Unit] =
-    apply((_, t) => Rng.insert(GenResult(s, t, ())))
-
-  def getseed: Gen[Seed] =
-    readseed(Rng.insert)
-
-  def putseed(s: Seed): Gen[Unit] =
-    apply((d, _) => Rng.insert(GenResult(d, s, ())))
+  def put(s: Size): Gen[Unit] =
+    apply(_ => Rng.insert(GenResult(s, ())))
 
   def double: Gen[Double] =
     Rng.double.gen
