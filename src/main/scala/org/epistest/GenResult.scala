@@ -1,6 +1,6 @@
 package org.epistest
 
-import scalaz._
+import scalaz._, Scalaz._
 
 sealed trait GenResult[+A] {
   val size: Size
@@ -24,8 +24,17 @@ object GenResult {
       val value = v
     }
 
-  def distribute[A, B](a: GenResult[A => B]): A => GenResult[B] =
-    w => a map (_(w))
+  def distribute[F[_], B](a: GenResult[F[B]])(implicit D: Distributive[F]): F[GenResult[B]] =
+    D.cosequence(a)
+
+  def distributeR[A, B](a: GenResult[A => B]): A => GenResult[B] =
+    distribute[({type f[x] = A => x})#f, B](a)
+
+  def distributeRK[A, B](a: GenResult[A => B]): Kleisli[GenResult, A, B] =
+    Kleisli(distributeR(a))
+
+  def distributeK[F[+_]: Distributive, A, B](a: GenResult[Kleisli[F, A, B]]): Kleisli[F, A, GenResult[B]] =
+    distribute[({type f[x] = Kleisli[F, A, x]})#f, B](a)
 
   implicit val GenResultComonad: Comonad[GenResult] =
     new Comonad[GenResult] {

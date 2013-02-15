@@ -1,6 +1,6 @@
 package org.epistest
 
-import scalaz._, Free._
+import scalaz._, Scalaz._, Free._
 
 sealed trait RngResume[+A] {
   def map[B](f: A => B): RngResume[B] =
@@ -46,8 +46,17 @@ object RngResume {
         fa map f
     }
 
-  def distribute[A, B](a: RngResume[A => B]): A => RngResume[B] =
-    w => a map (_(w))
+  def distribute[F[_], B](a: RngResume[F[B]])(implicit D: Distributive[F]): F[RngResume[B]] =
+    D.cosequence(a)
+
+  def distributeR[A, B](a: RngResume[A => B]): A => RngResume[B] =
+    distribute[({type f[x] = A => x})#f, B](a)
+
+  def distributeRK[A, B](a: RngResume[A => B]): Kleisli[RngResume, A, B] =
+    Kleisli(distributeR(a))
+
+  def distributeK[F[+_]: Distributive, A, B](a: RngResume[Kleisli[F, A, B]]): Kleisli[F, A, RngResume[B]] =
+    distribute[({type f[x] = Kleisli[F, A, x]})#f, B](a)
 
 }
 

@@ -1,6 +1,6 @@
 package org.epistest
 
-import scalaz._, Free._
+import scalaz._, Scalaz._, Free._
 
 sealed trait RngOp[+A] {
   def map[B](f: A => B): RngOp[B] =
@@ -46,8 +46,17 @@ object RngOp {
   def store[A](x: Store[Int, A]): RngOp[A] =
     nextbits(x.pos, x.put)
 
-  def distribute[A, B](a: RngOp[A => B]): A => RngOp[B] =
-    w => a map (_(w))
+  def distribute[F[_], B](a: RngOp[F[B]])(implicit D: Distributive[F]): F[RngOp[B]] =
+    D.cosequence(a)
+
+  def distributeR[A, B](a: RngOp[A => B]): A => RngOp[B] =
+    distribute[({type f[x] = A => x})#f, B](a)
+
+  def distributeRK[A, B](a: RngOp[A => B]): Kleisli[RngOp, A, B] =
+    Kleisli(distributeR(a))
+
+  def distributeK[F[+_]: Distributive, A, B](a: RngOp[Kleisli[F, A, B]]): Kleisli[F, A, RngOp[B]] =
+    distribute[({type f[x] = Kleisli[F, A, x]})#f, B](a)
 
   implicit val RngOpComonad: Comonad[RngOp] =
     new Comonad[RngOp] {
@@ -60,4 +69,5 @@ object RngOp {
       def cojoin[A](x: RngOp[A]) =
         x.duplicate
     }
+
 }

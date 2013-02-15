@@ -331,8 +331,17 @@ object Rng {
   def sequencePair[X, A](x: X, r: Rng[A]): Rng[(X, A)] =
     sequence[({type f[x] = (X, x)})#f, A]((x, r))
 
-  def distribute[A, B](a: Rng[A => B]): A => Rng[B] =
-    w => a map (_(w))
+  def distribute[F[_], B](a: Rng[F[B]])(implicit D: Distributive[F]): F[Rng[B]] =
+    D.cosequence(a)
+
+  def distributeR[A, B](a: Rng[A => B]): A => Rng[B] =
+    distribute[({type f[x] = A => x})#f, B](a)
+
+  def distributeRK[A, B](a: Rng[A => B]): Kleisli[Rng, A, B] =
+    Kleisli(distributeR(a))
+
+  def distributeK[F[+_]: Distributive, A, B](a: Rng[Kleisli[F, A, B]]): Kleisli[F, A, Rng[B]] =
+    distribute[({type f[x] = Kleisli[F, A, x]})#f, B](a)
 
   def frequencyL[A](x: NonEmptyList[(Int, Rng[A])]): Rng[A] = {
     val t = x.foldLeft(0) {
