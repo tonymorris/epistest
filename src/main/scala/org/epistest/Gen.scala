@@ -39,6 +39,9 @@ sealed trait Gen[+A] {
   def mapResult[X](f: GenResult[A] => GenResult[X]): Gen[X] =
     Gen(value(_) map f)
 
+  def mapRng[X](f: Rng[GenResult[A]] => Rng[GenResult[X]]): Gen[X] =
+    Gen(f compose value)
+
   def flatMapRng[X](f: Rng[GenResult[A]] => Gen[X]): Gen[X] =
     Gen(a => f(value(a)) value a)
 

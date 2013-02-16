@@ -124,4 +124,7 @@ object Perturb {
   def second[A]: Perturb[A, A] =
     variant(z => z)
 
+  def semigroup[A](implicit S: Semigroup[A]): Perturb[A, A] =
+    apply(a => b => S.append(a, b))
+
 }
