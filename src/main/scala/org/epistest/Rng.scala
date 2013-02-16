@@ -119,6 +119,9 @@ sealed trait Rng[+A] {
   def endofunction[AA >: A](implicit S: Semigroup[AA]): Rng[AA => AA] =
     function(Perturb.semigroup)
 
+  def endofunctionE[AA >: A](implicit S: Semigroup[AA]): Rng[Endo[AA]] =
+    endofunction[AA] map (Endo(_))
+
   def ->[AA >: A, X](p: Perturb[AA, X]): Rng[X => AA] =
     function(p)
 

@@ -36,6 +36,9 @@ sealed trait Gen[+A] {
   def mapr(f: RngOp ~> RngOp): Gen[A] =
     Gen(value(_) mapr f)
 
+  def mapRng[X](f: Rng[A] => Rng[X]): Gen[X] =
+    Gen(f compose value)
+
   def |+|[AA >: A](x: Gen[AA])(implicit S: Semigroup[AA]): Gen[AA] =
     for {
       a <- this
@@ -65,6 +68,16 @@ sealed trait Gen[+A] {
 
   def flatten[AA >: A, B](implicit f: AA === Gen[B]): Gen[B] =
     flatMap(f)
+
+  def function[AA >: A, X](p: Perturb[AA, X]): Gen[X => AA] =
+    mapRng(_ function p)
+
+  def endofunction[AA >: A](implicit S: Semigroup[AA]): Gen[AA => AA] =
+    mapRng(_.endofunction)
+
+  def endofunctionE[AA >: A](implicit S: Semigroup[AA]): Gen[Endo[AA]] =
+    mapRng(_.endofunctionE)
+
 
 }
 
