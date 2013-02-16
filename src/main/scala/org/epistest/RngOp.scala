@@ -32,6 +32,12 @@ sealed trait RngOp[+A] {
       case NextBits(b, n) => Some(Store(n, b))
       case SetSeed(_, _) => None
     }
+
+  def seed: Option[Long] =
+    this match {
+      case NextBits(_, _) => None
+      case SetSeed(n, _) => Some(n)
+    }
 }
 private case class NextBits[+A](b: Int, n: Int => A) extends RngOp[A]
 private case class SetSeed[+A](b: Long, n: () => A) extends RngOp[A]
