@@ -113,6 +113,9 @@ sealed trait Rng[+A] {
   def eitherS[X](x: Rng[X]): Rng[Either[A, X]] =
     either(x) map (_.toEither)
 
+  def function[AA >: A, X](p: Perturb[AA, X]): Rng[X => AA] =
+    map(p.perturb)
+
   def flatten[AA >: A, B](implicit f: AA === Rng[B]): Rng[B] =
     flatMap(f)
 
