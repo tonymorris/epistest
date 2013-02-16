@@ -116,6 +116,9 @@ sealed trait Rng[+A] {
   def function[AA >: A, X](p: Perturb[AA, X]): Rng[X => AA] =
     map(p.perturb)
 
+  def ->[AA >: A, X](p: Perturb[AA, X]): Rng[X => AA] =
+    function(p)
+
   def flatten[AA >: A, B](implicit f: AA === Rng[B]): Rng[B] =
     flatMap(f)
 
