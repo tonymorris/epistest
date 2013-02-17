@@ -159,7 +159,7 @@ object Shrink {
       else {
         val (halfs, nhalfs) =
           unfold(n, (x: Int) =>
-            if(x == 0)
+            if(x <= 1)
               None
             else {
               val r = n - x / 2
@@ -168,12 +168,127 @@ object Shrink {
 
         cons(0, interleave(halfs, nhalfs))
       })
-}
 
-object Main {
-  def main(args: Array[String]) {
-    val g = Shrink.predecessors[Int]
-    val r = g(Int.MinValue + 100)
-    println(r.toList)
-  }
+  val byte: Shrink[Byte] =
+    Shrink(n =>
+      if(n == 0)
+        EphemeralStream()
+      else {
+        val (halfs, nhalfs) =
+          unfold(n, (x: Byte) =>
+            if(x <= 1)
+              None
+            else {
+              val r = n - x / 2
+              Some(((r.toByte, (-r).toByte), (x / 2).toByte))
+            }).unzip[Byte, Byte]
+
+        cons(0, interleave(halfs, nhalfs))
+      })
+
+  val short: Shrink[Short] =
+    Shrink(n =>
+      if(n == 0)
+        EphemeralStream()
+      else {
+        val (halfs, nhalfs) =
+          unfold(n, (x: Short) =>
+            if(x <= 1)
+              None
+            else {
+              val r = n - x / 2
+              Some(((r.toShort, (-r).toShort), (x / 2).toShort))
+            }).unzip[Short, Short]
+
+        cons(0, interleave(halfs, nhalfs))
+      })
+
+  val long: Shrink[Long] =
+    Shrink(n =>
+      if(n == 0L)
+        EphemeralStream()
+      else {
+        val (halfs, nhalfs) =
+          unfold(n, (x: Long) =>
+            if(x <= 1L)
+              None
+            else {
+              val r = n - x / 2L
+              Some(((r, -r), x / 2L))
+            }).unzip[Long, Long]
+
+        cons(0L, interleave(halfs, nhalfs))
+      })
+
+  val float: Shrink[Float] =
+    Shrink(n =>
+      if(n == 0F)
+        EphemeralStream()
+      else {
+        val (halfs, nhalfs) =
+          unfold(n, (x: Float) =>
+            if(x <= 1F)
+              None
+            else {
+              val r = n - x / 2F
+              Some(((r, -r), x / 2F))
+            }).unzip[Float, Float]
+
+        cons(0F, interleave(halfs, nhalfs))
+      })
+
+  val double: Shrink[Double] =
+    Shrink(n =>
+      if(n == 0D)
+        EphemeralStream()
+      else {
+        val (halfs, nhalfs) =
+          unfold(n, (x: Double) =>
+            if(x <= 1D)
+              None
+            else {
+              val r = n - x / 2D
+              Some(((r, -r), x / 2D))
+            }).unzip[Double, Double]
+
+        cons(0D, interleave(halfs, nhalfs))
+      })
+
+  val char: Shrink[Char] =
+    Shrink(c => {
+      def lt(a: Char): Boolean = {
+          def stamp(x: Char) =
+            (
+              !x.isLower
+            , !x.isUpper
+            , !x.isDigit
+            , x != ' '
+            , !x.isWhitespace
+            , x
+            )
+          stamp(a) < stamp(c)
+        }
+
+      val l =
+        List(
+          "abc".toList
+        , if(c.isUpper) List(c.toLower) else Nil
+        , "ABC".toList
+        , "123".toList
+        , " \n".toList
+        ).flatten.distinct filter lt
+      EphemeralStream(l: _*)
+    })
+
+  val digit: Shrink[Digit] =
+    Shrink(d =>
+      EphemeralStream.unfold(Digit._0, (q: Digit) => if(q == Digit._9 || q == d) None else {
+        val n = implicitly[Enum[Digit]].succ(q)
+        Some((q, n))
+      })
+    )
+
+  val string: Shrink[String] =
+    char.list xmap (_.mkString, _.toList)
+
 }
