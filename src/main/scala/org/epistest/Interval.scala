@@ -178,5 +178,30 @@ object Interval {
 
     def upperstring(size: Int): Interval[String] =
       list(upper, size) map (_.mkString)
+
+    def positivedouble: Interval[Double] =
+      interval(0, Double.MaxValue)
+
+    def negativedouble: Interval[Double] =
+      interval(Double.MinValue, -1)
+
+    def positivefloat: Interval[Float] =
+      interval(0, Float.MaxValue)
+
+    def negativefloat: Interval[Float] =
+      interval(Float.MinValue, -1)
+
+    def positivelong: Interval[Long] =
+      interval(0, Long.MaxValue)
+
+    def negativelong: Interval[Long] =
+      interval(Long.MinValue, -1)
+
+    def positiveint: Interval[Int] =
+      interval(0, Int.MaxValue)
+
+    def negativeint: Interval[Int] =
+      interval(Int.MinValue, -1)
+
   }
 }
