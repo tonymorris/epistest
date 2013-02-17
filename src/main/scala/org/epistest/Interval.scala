@@ -155,7 +155,28 @@ object Interval {
     def pair[A, B](i: Interval[A], j: Interval[B]): Interval[(A, B)] =
       i zip j
 
+    def triple[A, B, C](i: Interval[A], j: Interval[B], k: Interval[C]): Interval[(A, B, C)] =
+      interval((i.min, j.min, k.min), (i.max, j.max, k.max))
+
     def either[A, B](i: Interval[A], j: Interval[B]): Interval[A \/ B] =
       i either j
+
+    def numeric: Interval[Char] =
+      interval('0', '9')
+
+    def lower: Interval[Char] =
+      interval('a', 'z')
+
+    def upper: Interval[Char] =
+      interval('A', 'A')
+
+    def numericstring(size: Int): Interval[String] =
+      list(numeric, size) map (_.mkString)
+
+    def lowerstring(size: Int): Interval[String] =
+      list(lower, size) map (_.mkString)
+
+    def upperstring(size: Int): Interval[String] =
+      list(upper, size) map (_.mkString)
   }
 }
