@@ -30,6 +30,9 @@ sealed trait Interval[+A] {
   def ***[AA >:A, B](i: Interval[B]): Interval[(AA, B)] =
     zip(i)
 
+  def either[B](i: Interval[B]): Interval[A \/ B] =
+    Interval.interval(min.left, i.max.right)
+
   def list: List[A] =
     List(min, max)
 
@@ -146,5 +149,13 @@ object Interval {
     def stream[A](i: Interval[A], size: Int): Interval[EphemeralStream[A]] =
       interval(EphemeralStream(), EphemeralStream.unfold(size, (z: Int) => if(z <= 0) None else Some((i.max, z - 1))))
 
+    def string(size: Int): Interval[String] =
+      list(char, size) map (_.mkString)
+
+    def pair[A, B](i: Interval[A], j: Interval[B]): Interval[(A, B)] =
+      i zip j
+
+    def either[A, B](i: Interval[A], j: Interval[B]): Interval[A \/ B] =
+      i either j
   }
 }
