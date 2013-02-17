@@ -166,6 +166,12 @@ object Rng {
   def int: Rng[Int] =
     nextbits(32)
 
+  def byte: Rng[Byte] =
+    nextbits(8) map (_.toByte)
+
+  def short: Rng[Short] =
+    nextbits(16) map (_.toShort)
+
   def unit: Rng[Unit] =
     insert(())
 
@@ -197,7 +203,7 @@ object Rng {
     numeric list1 z
 
   def char: Rng[Char] =
-    int map (_.toChar)
+    nextbits(16) map (_.toChar)
 
   def chars(z: Size): Rng[List[Char]] =
     char list z

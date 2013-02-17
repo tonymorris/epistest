@@ -102,6 +102,12 @@ object Gen {
   def int: Gen[Int] =
     Rng.int.gen
 
+  def byte: Gen[Byte] =
+    Rng.byte.gen
+
+  def short: Gen[Short] =
+    Rng.short.gen
+
   def unit: Gen[Unit] =
     insert(())
 
