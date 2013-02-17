@@ -45,11 +45,11 @@ sealed trait Gen[+A] {
       b <- x
     } yield S.append(a, b)
 
-  def many: Gen[List[A]] =
-    Gen(s => apply(s) many s)
+  def list: Gen[List[A]] =
+    Gen(s => apply(s) list s)
 
-  def many1: Gen[NonEmptyList[A]] =
-    Gen(s => apply(s) many1 s)
+  def list1: Gen[NonEmptyList[A]] =
+    Gen(s => apply(s) list1 s)
 
   def option: Gen[Option[A]] =
     Gen(apply(_).option)
@@ -115,64 +115,64 @@ object Gen {
     Rng.digit.gen
 
   def digits: Gen[List[Digit]] =
-    Rng.digit.many
+    Rng.digit.list
 
   def digits1: Gen[NonEmptyList[Digit]] =
-    Rng.digit.many1
+    Rng.digit.list1
 
   def numeric: Gen[Char] =
     Rng.numeric.gen
 
   def numerics: Gen[List[Char]] =
-    Rng.numeric.many
+    Rng.numeric.list
 
   def numerics1: Gen[NonEmptyList[Char]] =
-    Rng.numeric.many1
+    Rng.numeric.list1
 
   def char: Gen[Char] =
     Rng.char.gen
 
   def chars: Gen[List[Char]] =
-    Rng.char.many
+    Rng.char.list
 
   def chars1: Gen[NonEmptyList[Char]] =
-    Rng.char.many1
+    Rng.char.list1
 
   def upper: Gen[Char] =
     Rng.upper.gen
 
   def uppers: Gen[List[Char]] =
-    Rng.upper.many
+    Rng.upper.list
 
   def uppers1: Gen[NonEmptyList[Char]] =
-    Rng.upper.many1
+    Rng.upper.list1
 
   def lower: Gen[Char] =
     Rng.lower.gen
 
   def lowers: Gen[List[Char]] =
-    Rng.lower.many
+    Rng.lower.list
 
   def lowers1: Gen[NonEmptyList[Char]] =
-    Rng.lower.many1
+    Rng.lower.list1
 
   def alpha: Gen[Char] =
     Rng.alpha.gen
 
   def alphas: Gen[List[Char]] =
-    Rng.alpha.many
+    Rng.alpha.list
 
   def alphas1: Gen[NonEmptyList[Char]] =
-    Rng.alpha.many1
+    Rng.alpha.list1
 
   def alphanumeric: Gen[Char] =
     Rng.alphanumeric.gen
 
   def alphanumerics: Gen[List[Char]] =
-    Rng.alphanumeric.many
+    Rng.alphanumeric.list
 
   def alphanumerics1: Gen[NonEmptyList[Char]] =
-    Rng.alphanumeric.many1
+    Rng.alphanumeric.list1
 
   def string: Gen[String] =
     Gen(Rng.string)

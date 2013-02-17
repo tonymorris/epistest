@@ -75,7 +75,7 @@ sealed trait Rng[+A] {
       b <- x
     } yield S.append(a, b)
 
-  def many: Gen[List[A]] =
+  def list: Gen[List[A]] =
     Gen(s =>
       for {
         n <- s.value match {
@@ -86,7 +86,7 @@ sealed trait Rng[+A] {
       } yield a
     )
 
-  def many1: Gen[NonEmptyList[A]] =
+  def list1: Gen[NonEmptyList[A]] =
     Gen(s =>
       for {
         n <- s.value match {
@@ -173,46 +173,46 @@ object Rng {
     chooseInt(0, 9) map mod10Digit
 
   def digits(z: Size): Rng[List[Digit]] =
-    digit many z
+    digit list z
 
   def digits1(z: Size): Rng[NonEmptyList[Digit]] =
-    digit many1 z
+    digit list1 z
 
   def numeric: Rng[Char] =
     digit map (_.toChar)
 
   def numerics(z: Size): Rng[List[Char]] =
-    numeric many z
+    numeric list z
 
   def numerics1(z: Size): Rng[NonEmptyList[Char]] =
-    numeric many1 z
+    numeric list1 z
 
   def char: Rng[Char] =
     int map (_.toChar)
 
   def chars(z: Size): Rng[List[Char]] =
-    char many z
+    char list z
 
   def chars1(z: Size): Rng[NonEmptyList[Char]] =
-    char many1 z
+    char list1 z
 
   def upper: Rng[Char] =
     chooseInt(65, 90) map (_.toChar)
 
   def uppers(z: Size): Rng[List[Char]] =
-    upper many z
+    upper list z
 
   def uppers1(z: Size): Rng[NonEmptyList[Char]] =
-    upper many1 z
+    upper list1 z
 
   def lower: Rng[Char] =
     chooseInt(97, 122) map (_.toChar)
 
   def lowers(z: Size): Rng[List[Char]] =
-    lower many z
+    lower list z
 
   def lowers1(z: Size): Rng[NonEmptyList[Char]] =
-    lower many1 z
+    lower list1 z
 
   def alpha: Rng[Char] =
     upper +++ lower map {
@@ -221,10 +221,10 @@ object Rng {
     }
 
   def alphas(z: Size): Rng[List[Char]] =
-    alpha many z
+    alpha list z
 
   def alphas1(z: Size): Rng[NonEmptyList[Char]] =
-    alpha many1 z
+    alpha list1 z
 
   def alphanumeric: Rng[Char] =
     chooseInt(0, 61) map (c =>
@@ -236,10 +236,10 @@ object Rng {
         c - 4).toChar)
 
   def alphanumerics(z: Size): Rng[List[Char]] =
-    alphanumeric many z
+    alphanumeric list z
 
   def alphanumerics1(z: Size): Rng[NonEmptyList[Char]] =
-    alphanumeric many1 z
+    alphanumeric list1 z
 
   def string(z: Size): Rng[String] =
     chars(z) map (_.mkString)
