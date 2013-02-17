@@ -178,6 +178,24 @@ object Rng {
   def boolean: Rng[Boolean] =
     chooseInt(0, 1) map (_ == 0)
 
+  def positivedouble: Rng[Double] =
+    double map (math.abs(_))
+
+  def negativedouble: Rng[Double] =
+    double map (n => if(n > 0) n else -n)
+
+  def positivefloat: Rng[Float] =
+    float map (math.abs(_))
+
+  def negativefloat: Rng[Float] =
+    float map (n => if(n > 0) n else -n)
+
+  def positivelong: Rng[Long] =
+    long map (math.abs(_))
+
+  def negativelong: Rng[Long] =
+    long map (n => if(n > 0) n else -n)
+
   def positiveint: Rng[Int] =
     int map (math.abs(_))
 

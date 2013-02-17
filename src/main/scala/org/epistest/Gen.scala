@@ -114,6 +114,24 @@ object Gen {
   def boolean: Gen[Boolean] =
     Rng.boolean.gen
 
+  def positivedouble: Gen[Double] =
+    Rng.positivedouble.gen
+
+  def negativedouble: Gen[Double] =
+    Rng.negativedouble.gen
+
+  def positivefloat: Gen[Float] =
+    Rng.positivefloat.gen
+
+  def negativefloat: Gen[Float] =
+    Rng.negativefloat.gen
+
+  def positivelong: Gen[Long] =
+    Rng.positivelong.gen
+
+  def negativelong: Gen[Long] =
+    Rng.negativelong.gen
+
   def positiveint: Gen[Int] =
     Rng.positiveint.gen
 
