@@ -93,46 +93,6 @@ object Shrink {
   def insert[A](a: => A): Shrink[A] =
     single(_ => a)
 
-  def predecessors[A](implicit E: Enum[A]): Shrink[A] =
-    Shrink(a => EphemeralStream.unfold(a, (q: A) =>
-      if(E.min exists (_ === q))
-        None
-      else {
-        val p = E.pred(q)
-        Some((p, p))
-      })
-    )
-
-  def predecessorsN[A](n: Int)(implicit E: Enum[A]): Shrink[A] =
-    Shrink(a => EphemeralStream.unfold(a, (q: A) =>
-      if(E.min exists (_ === q))
-        None
-      else {
-        val p = E.predn(n, q)
-        Some((p, p))
-      })
-    )
-
-  def successors[A](implicit E: Enum[A]): Shrink[A] =
-    Shrink(a => EphemeralStream.unfold(a, (q: A) =>
-      if(E.max exists (_ === q))
-        None
-      else {
-        val p = E.succ(q)
-        Some((p, p))
-      })
-    )
-
-  def successorsN[A](n: Int)(implicit E: Enum[A]): Shrink[A] =
-    Shrink(a => EphemeralStream.unfold(a, (q: A) =>
-      if(E.max exists (_ === q))
-        None
-      else {
-        val p = E.succn(n, q)
-        Some((p, p))
-      })
-    )
-
   // todo use the interleave method in scalaz-7.0.0-M8
   private def interleave[T](x: EphemeralStream[T], y: EphemeralStream[T]): EphemeralStream[T] =
     if(x.isEmpty) y
