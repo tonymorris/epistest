@@ -137,7 +137,14 @@ object Interval {
     val ordering: Interval[Ordering] =
       interval(Ordering.LT, Ordering.GT)
 
+    def list[A](i: Interval[A], size: Int): Interval[List[A]] =
+      interval(Nil, List.fill(size)(i.max))
+
+    def vector[A](i: Interval[A], size: Int): Interval[Vector[A]] =
+      interval(Vector(), Vector.fill(size)(i.max))
+
+    def stream[A](i: Interval[A], size: Int): Interval[EphemeralStream[A]] =
+      interval(EphemeralStream(), EphemeralStream.unfold(size, (z: Int) => if(z <= 0) None else Some((i.max, z - 1))))
 
   }
-
 }
