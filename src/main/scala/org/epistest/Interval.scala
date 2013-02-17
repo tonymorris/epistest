@@ -103,4 +103,41 @@ object Interval {
         a zip b
     }
 
+  object Range {
+    val unit: Interval[Unit] =
+      point(())
+
+    val boolean: Interval[Boolean] =
+      interval(false, true)
+
+    val byte: Interval[Byte] =
+      interval(Byte.MinValue, Byte.MaxValue)
+
+    val char: Interval[Char] =
+      interval(Char.MinValue, Char.MaxValue)
+
+    val double: Interval[Double] =
+      interval(Double.MinValue, Double.MaxValue)
+
+    val float: Interval[Float] =
+      interval(Float.MinValue, Float.MaxValue)
+
+    val int: Interval[Int] =
+      interval(Int.MinValue, Int.MaxValue)
+
+    val long: Interval[Long] =
+      interval(Long.MinValue, Long.MaxValue)
+
+    val short: Interval[Short] =
+      interval(Short.MinValue, Short.MaxValue)
+
+    val digit: Interval[Digit] =
+      interval(Digit._0, Digit._9)
+
+    val ordering: Interval[Ordering] =
+      interval(Ordering.LT, Ordering.GT)
+
+
+  }
+
 }
