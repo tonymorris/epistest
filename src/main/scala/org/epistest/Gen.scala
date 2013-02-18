@@ -45,6 +45,9 @@ sealed trait Gen[+A] {
       b <- x
     } yield S.append(a, b)
 
+  def fill(n: Int): Gen[List[A]] =
+    Gen.sequence(List.fill(n)(this))
+
   def list: Gen[List[A]] =
     Gen(s => apply(s) list s)
 
