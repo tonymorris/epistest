@@ -75,6 +75,9 @@ sealed trait Rng[+A] {
       b <- x
     } yield S.append(a, b)
 
+  def fill(n: Int): Rng[List[A]] =
+    sequence(List.fill(n)(this))
+
   def list: Gen[List[A]] =
     Gen(s =>
       for {
@@ -82,7 +85,7 @@ sealed trait Rng[+A] {
                case None => int
                case Some(y) => chooseInt(0, y)
              }
-        a <- sequence(List.fill(n)(this))
+        a <- fill(n)
       } yield a
     )
 
@@ -94,7 +97,7 @@ sealed trait Rng[+A] {
                case Some(y) => chooseInt(0, y)
              }
         z <- this
-        a <- sequence(List.fill(n)(this))
+        a <- fill(n)
       } yield nel(z, a)
     )
 
