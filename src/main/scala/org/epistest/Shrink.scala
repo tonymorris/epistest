@@ -250,3 +250,18 @@ object Shrink {
     char.list xmap (_.mkString, _.toList)
 
 }
+
+sealed trait Result[+A]
+case class Exhausted[+A]() extends Result[A]
+case class Run[+A](succeed: List[A], failure: List[A]) extends Result[A]
+
+
+// case class PropertyWithDiscarded[-A](run: A => (Interval, Boolean))
+case class Property[-A](run: A => Boolean) {
+  def check[AA <: A](g: Gen[AA], sh: Shrink[AA], ex: Interval[AA], tests: Int, sz: Size): Result[AA] =
+    error("")
+}
+
+object Property {
+  val plusZero = Property((n: Int) => n + 0 == n)
+}
