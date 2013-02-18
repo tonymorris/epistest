@@ -61,10 +61,8 @@ sealed trait Shrink[A] {
           case h::t => shrink(h) map (_ :: t)
         }
 
-      val x = EphemeralStream.unfold(n, (o: Int) => if(o > 0) Some(o, o / 2) else None)
-      val xx = x.flatMap(removes(_, n, l))
-      val xxx = xx ++ shrink1(l)
-      xxx
+      val u = EphemeralStream.unfold(n, (o: Int) => if(o > 0) Some(o, o / 2) else None)
+      u.flatMap(removes(_, n, l)) ++ shrink1(l)
     })
 
   def list1: Shrink[NonEmptyList[A]] =
