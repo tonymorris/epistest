@@ -258,8 +258,15 @@ case class Run[+A](succeed: List[A], failure: List[A]) extends Result[A]
 
 // case class PropertyWithDiscarded[-A](run: A => (Interval, Boolean))
 case class Property[-A](run: A => Boolean) {
-  def check[AA <: A](g: Gen[AA], sh: Shrink[AA], ex: Interval[AA], tests: Int, sz: Size): Result[AA] =
+  def check[AA <: A](g: Gen[AA], sh: Shrink[AA], ex: Interval[AA], tests: Int, sz: Size): Result[AA] = {
+    val x = g fill tests
+    val y = x map (l => {
+      def f(r: List[AA]): Result[AA] =
+        error("")
+      f(l)
+    })
     error("")
+  }
 }
 
 object Property {
