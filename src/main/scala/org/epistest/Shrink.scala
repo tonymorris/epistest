@@ -258,13 +258,30 @@ case class Run[+A](succeed: List[A], failure: List[A]) extends Result[A]
 
 // case class PropertyWithDiscarded[-A](run: A => (Interval, Boolean))
 case class Property[-A](run: A => Boolean) {
-  def check[AA <: A](g: Gen[AA], sh: Shrink[AA], ex: Interval[AA], tests: Int, sz: Size): Result[AA] = {
+  def check[AA <: A](g: Gen[AA], sh: Shrink[AA], ex: Interval[AA], tests: Int, sz: Size)(implicit E: Enum[AA]): Result[AA] = {
     val x = g fill tests
+    val o = Diev.empty[AA] + ((ex.min, ex.max))
     val y = x map (l => {
-      def f(r: List[AA]): Result[AA] =
-        error("")
-      f(l)
+      def f(x: List[AA], d: Diev[AA], r: Result[AA]): Result[AA] =
+        x match {
+          case Nil => r
+          case h::t => {
+            if(run(h)) {
+              val e = d + h
+              if(e === o)
+                Exhausted()
+              else
+                f(t, e, r match {
+                  case Exhausted() => Exhausted()
+                  case Run(s, f) => Run(h::s, f)
+                })
+            } else
+              error("")
+          }
+        }
+      f(l, Diev.empty, Run(Nil, Nil))
     })
+
     error("")
   }
 }
