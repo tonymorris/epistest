@@ -319,4 +319,13 @@ case class Property[-A](run: A => Boolean) {
 
 object Property {
   val plusZero = Property((n: Int) => n + 0 == n)
+  val plusZeroBreaks = Property((n: Int) => if(n > 200 && n < 100000000) n == 77 else n + 0 == n)
+}
+
+object Main {
+  def main(args: Array[String]) {
+    val p = Property.plusZeroBreaks
+    val r = p.check(Gen.int, Shrink.int, Interval.Range.int, 100, Size.nosize)
+    println(r)
+  }
 }
