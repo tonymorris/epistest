@@ -292,7 +292,7 @@ case class Property[-A](run: A => Boolean) {
                         if(qq exists (_ == hh))
                           (p, Some(hh))
                         else
-                          g(sh(hh), (p, qq))
+                          g(sh(hh), (p, Some(hh)))
                       }
                     }
                   }
@@ -321,7 +321,8 @@ case class Property[-A](run: A => Boolean) {
 
 object Property {
   val plusZero = Property((n: Int) => n + 0 == n)
-  val plusZeroBreaks = Property((n: Int) => if(n > 200 && n < 100000000) n == 77 else n + 0 == n)
+  val plusZeroBreaks = Property((n: Int) => if(n > 24 && n < 100000000) n == 77 else n + 0 == n)
+
 }
 
 object Main {
