@@ -254,7 +254,7 @@ object Shrink {
 sealed trait Result[+A]
 case class Exhausted[+A]() extends Result[A]
 case class Succeed[+A](succeed: List[A]) extends Result[A]
-case class Failed[+A](succeed: List[A], failed: A \/ (A, A)) extends Result[A]
+case class Failed[+A](succeed: List[A], shrinksucceed: List[A], failed: A \/ (A, A)) extends Result[A]
 
 
 // case class PropertyWithDiscarded[-A](run: A => (Interval, Boolean))
@@ -275,11 +275,38 @@ case class Property[-A](run: A => Boolean) {
                 f(t, e, r match {
                   case Exhausted() => Exhausted()
                   case Succeed(s) => Succeed(h::s)
-                  case Failed(s, f) => Failed(s, f)
+                  case Failed(s, i, f) => Failed(s, i, f)
                 })
             } else {
               val q = sh(h)
-              error("")
+
+              def g(x: EphemeralStream[AA], v: (List[AA], Option[AA])): (List[AA], Option[AA]) =
+                if(x.isEmpty)
+                  v
+                else {
+                  val hh = x.head()
+                  val d = run(hh)
+                  if(d)
+                    g(x.tail(), v match {
+                      case (p, qq) => (hh :: p, qq)
+                    })
+                  else
+                    v match {
+                      case (p, _) => (p, Some(hh))
+                    }
+                }
+
+              r match {
+                case Exhausted() => Exhausted()
+                case Succeed(s) => {
+                  val (e, z) = g(q, (Nil, None))
+                  Failed(s, e, z match {
+                    case None => h.left
+                    case Some(u) => (h, u).right
+                  })
+                }
+                case Failed(s, i, f) => Failed(s, i, f)
+              }
             }
           }
         }
