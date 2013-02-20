@@ -285,15 +285,15 @@ case class Property[-A](run: A => Boolean) {
                   v
                 else {
                   val hh = x.head()
-                  val d = run(hh)
-                  if(d)
-                    g(x.tail(), v match {
-                      case (p, qq) => (hh :: p, qq)
-                    })
-                  else
-                    v match {
-                      case (p, _) => (p, Some(hh))
+                  v match {
+                    case (p, qq) => {
+                      val d = run(hh)
+                      if(d)
+                        (hh :: p, qq)
+                      else
+                        (p, Some(hh))
                     }
+                  }
                 }
 
               r match {
