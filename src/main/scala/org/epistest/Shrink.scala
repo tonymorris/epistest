@@ -313,7 +313,7 @@ case class Property[-A](run: A => Boolean) {
       f(l, Diev.empty, Succeed(Nil))
     })
 
-    error("")
+    y.run(sz)
   }
 }
 
