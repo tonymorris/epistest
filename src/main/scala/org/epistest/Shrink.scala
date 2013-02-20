@@ -253,7 +253,8 @@ object Shrink {
 
 sealed trait Result[+A]
 case class Exhausted[+A]() extends Result[A]
-case class Run[+A](succeed: List[A], failure: List[A]) extends Result[A]
+case class Succeed[+A](succeed: List[A]) extends Result[A]
+case class Failed[+A](succeed: List[A], failed: A \/ (A, A)) extends Result[A]
 
 
 // case class PropertyWithDiscarded[-A](run: A => (Interval, Boolean))
@@ -273,13 +274,15 @@ case class Property[-A](run: A => Boolean) {
               else
                 f(t, e, r match {
                   case Exhausted() => Exhausted()
-                  case Run(s, f) => Run(h::s, f)
+                  case Succeed(s) => Succeed(h::s)
+                  case Failed(s, f) => Failed(s, f)
                 })
-            } else
+            } else {
               error("")
+            }
           }
         }
-      f(l, Diev.empty, Run(Nil, Nil))
+      f(l, Diev.empty, Succeed(Nil))
     })
 
     error("")
