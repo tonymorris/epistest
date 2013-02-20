@@ -278,8 +278,6 @@ case class Property[-A](run: A => Boolean) {
                   case Failed(s, i, f) => Failed(s, i, f)
                 })
             } else {
-              val q = sh(h)
-
               def g(x: EphemeralStream[AA], v: (List[AA], Option[AA])): (List[AA], Option[AA]) =
                 if(x.isEmpty)
                   v
@@ -289,9 +287,13 @@ case class Property[-A](run: A => Boolean) {
                     case (p, qq) => {
                       val d = run(hh)
                       if(d)
-                        (hh :: p, qq)
-                      else
-                        (p, Some(hh))
+                        g(x.tail(), (hh :: p, qq))
+                      else {
+                        if(qq exists (_ == hh))
+                          (p, Some(hh))
+                        else
+                          g(sh(hh), (p, qq))
+                      }
                     }
                   }
                 }
@@ -299,7 +301,7 @@ case class Property[-A](run: A => Boolean) {
               r match {
                 case Exhausted() => Exhausted()
                 case Succeed(s) => {
-                  val (e, z) = g(q, (Nil, None))
+                  val (e, z) = g(sh(h), (Nil, None))
                   Failed(s, e, z match {
                     case None => h.left
                     case Some(u) => (h, u).right
