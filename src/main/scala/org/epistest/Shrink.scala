@@ -278,6 +278,7 @@ case class Property[-A](run: A => Boolean) {
                   case Failed(s, f) => Failed(s, f)
                 })
             } else {
+              val q = sh(h)
               error("")
             }
           }
