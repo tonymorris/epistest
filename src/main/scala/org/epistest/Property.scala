@@ -11,9 +11,8 @@ case class Failed[+A](succeed: List[A], shrinksucceed: List[A], failed: A \/ (A,
 // case class PropertyWithDiscarded[-A](run: A => (Interval, Boolean))
 case class Property[-A](run: A => Boolean) {
   def check[AA <: A](g: Gen[AA], sh: Shrink[AA], ex: Interval[AA], tests: Int, sz: Size)(implicit E: Enum[AA]): Result[AA] = {
-    val x = g fill tests
     val o = Diev.empty[AA] + ((ex.min, ex.max))
-    val y = x map (l => {
+    val y = g fill tests map (l => {
       def f(x: List[AA], d: Diev[AA], r: Result[AA]): Result[AA] =
         x match {
           case Nil => r
