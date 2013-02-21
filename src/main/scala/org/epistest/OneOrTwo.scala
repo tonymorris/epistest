@@ -146,6 +146,15 @@ object OneOrTwo extends OneOrTwoInstances {
     }
   }
 
+  def oneL[A]: OneOrTwo[A] @> A =
+    Lens(o => Store(o.setOne, o.one))
+
+  def twoL[A]: OneOrTwo[A] @> Option[A] =
+    Lens(o => Store(o.optionTwo, o.two))
+
+  def twoPL[A]: OneOrTwo[A] @?> A =
+    PLens(o => o.two map (t => Store(o.setTwo, t)))
+
   implicit val OneOrTwoZip: Zip[OneOrTwo] =
     new Zip[OneOrTwo] {
       def zip[A, B](a: => OneOrTwo[A], b: => OneOrTwo[B]) =
