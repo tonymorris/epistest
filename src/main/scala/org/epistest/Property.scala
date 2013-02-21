@@ -5,7 +5,7 @@ import scalaz._, Scalaz._
 sealed trait Result[+A]
 case class Exhausted[+A]() extends Result[A]
 case class Succeed[+A](succeed: List[A]) extends Result[A]
-case class Failed[+A](succeed: List[A], shrinksucceed: List[A], failed: A \/ (A, A)) extends Result[A]
+case class Failed[+A](succeed: List[A], shrinksucceed: List[A], failed: OneOrTwo[A]) extends Result[A]
 
 
 // case class PropertyWithDiscarded[-A](run: A => (Interval, Boolean))
@@ -53,8 +53,8 @@ case class Property[-A](run: A => Boolean) {
                 case Succeed(s) => {
                   val (e, z) = g(sh(h), (Nil, None))
                   Failed(s, e, z match {
-                    case None => h.left
-                    case Some(u) => (h, u).right
+                    case None => OneOrTwo(h)
+                    case Some(u) => OneOrTwo.two(h, u)
                   })
                 }
                 case Failed(s, i, f) => Failed(s, i, f)
@@ -67,6 +67,11 @@ case class Property[-A](run: A => Boolean) {
 
     y.run(sz)
   }
+
+  def check2[AA <: A](g: Gen[AA], sh: Shrink[AA], tests: Int, sz: Size): Result[AA] = {
+    error("")
+  }
+
 }
 
 object Property {
