@@ -59,6 +59,9 @@ object Property {
     new Property[A, R] {
       val run = r
     }
+
+  def _2[A, B, R](r: (A, B) => R): Property[(A, B), R] =
+    apply(r.tupled)
 }
 
 /*
