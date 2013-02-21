@@ -2,6 +2,66 @@ package org.epistest
 
 import scalaz._, Scalaz._
 
+sealed trait Property[-A, +R] {
+  val run: A => R
+
+  def contramap[B](f: B => A): Property[B, R] =
+    Property(run compose f)
+
+  def map[S](f: R => S): Property[A, S] =
+    Property(f compose run)
+
+  def flatMap[AA <: A, S](f: R => Property[AA, S]): Property[AA, S] =
+    Property(a => f(run(a)) run a)
+
+  def ap[AA <: A, X](f: Property[AA, R => X]): Property[AA, X] =
+    for {
+      ff <- f
+      aa <- this
+    } yield ff(aa)
+
+  def zip[AA <: A, X](q: Property[AA, X]): Property[AA, (R, X)] =
+    zipWith(q)(a => (a, _))
+
+  def zipWith[AA <: A, B, C](r: Property[AA, B])(f: R => B => C): Property[AA, C] =
+    r.ap(map(f))
+
+  def compose[S](p: Property[S, A]): Property[S, R] =
+    Property(run compose p.run)
+
+  def andThen[S](p: Property[R, S]): Property[A, S] =
+    p compose this
+
+  def ***[B, S](p: Property[B, S]): Property[(A, B), (R, S)] =
+    Property {
+      case (a, b) => (run(a), p.run(b))
+    }
+
+  def +++[B, S](p: Property[B, S]): Property[A \/ B, R \/ S] =
+    Property {
+      case -\/(a) => -\/(run(a))
+      case \/-(b) => \/-(p.run(b))
+    }
+
+  def |||[RR >: R, B](p: Property[B, RR]): Property[A \/ B, RR] =
+    Property {
+      case -\/(a) => run(a)
+      case \/-(b) => p.run(b)
+    }
+
+  def check[AA <: A](tests: Int, sz: Size)(implicit D: Decision[R], G: Gen[AA], S: Shrink[AA]): R = {
+    error("")
+  }
+}
+
+object Property {
+  def apply[A, R](r: A => R): Property[A, R] =
+    new Property[A, R] {
+      val run = r
+    }
+}
+
+/*
 sealed trait Result[+A]
 case class Exhausted[+A]() extends Result[A]
 case class Succeed[+A](succeed: List[A]) extends Result[A]
@@ -84,3 +144,4 @@ object Main {
     println(r)
   }
 }
+*/
