@@ -52,10 +52,7 @@ case class Property[-A](run: A => Boolean) {
                 case Exhausted() => Exhausted()
                 case Succeed(s) => {
                   val (e, z) = g(sh(h), (Nil, None))
-                  Failed(s, e, z match {
-                    case None => OneOrTwo(h)
-                    case Some(u) => OneOrTwo.two(h, u)
-                  })
+                  Failed(s, e, OneOrTwo(h) optionTwo z)
                 }
                 case Failed(s, i, f) => Failed(s, i, f)
               }
