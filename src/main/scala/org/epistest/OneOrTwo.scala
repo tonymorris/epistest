@@ -33,8 +33,26 @@ sealed trait OneOrTwo[+A] {
   def toOne: OneOrTwo[A] =
     OneOrTwo(one)
 
+  def setOne[AA >: A](a: AA): OneOrTwo[AA] =
+    oneortwo(a, two)
+
   def setTwo[AA >: A](a: AA): OneOrTwo[AA] =
-    OneOrTwo.two(one, a)
+    optionTwo(Some(a))
+
+  def unsetTwo: OneOrTwo[A] =
+    optionTwo(None)
+
+  def optionTwo[AA >: A](a: Option[AA]): OneOrTwo[AA] =
+    oneortwo(one, a)
+
+  def withOne[AA >: A](f: A => AA): OneOrTwo[AA] =
+    oneortwo(f(one), two)
+
+  def withTwo[AA >: A](f: A => AA): OneOrTwo[AA] =
+    oneortwo(one, two map f)
+
+  def withOptionTwo[AA >: A](f: Option[A] => Option[AA]): OneOrTwo[AA] =
+    oneortwo(one, f(two))
 
   def list: List[A] =
     one :: two.toList
