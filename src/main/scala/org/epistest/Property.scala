@@ -49,7 +49,7 @@ sealed trait Property[A, R] {
       case \/-(b) => p.run(b)
     }
 
-  def check(tests: Int, sz: Size)(implicit D: Decision[R], T: DataGenShrink[A]): Result[A] = {
+  def check(tests: Int, sz: Size = Size.nosize)(implicit D: Decision[R], T: DataGenShrink[A]): Result[A] = {
     val w =
       T.gen fill tests map (l => {
         @annotation.tailrec
@@ -113,6 +113,12 @@ object DataGenShrink {
 
   implicit val IntDataGenShrink: DataGenShrink[Int] =
     apply(Gen.int, Shrink.int)
+
+  implicit val StringDataGenShrink: DataGenShrink[String] =
+    apply(Gen.string, Shrink.string)
+
+  implicit def Tuple2DataGenShrink[A, B](implicit A: DataGenShrink[A], B: DataGenShrink[B]): DataGenShrink[(A, B)] =
+    A zip B
 }
 
 sealed trait Result[+A] {
@@ -134,6 +140,14 @@ object Property {
 
   def _2[A, B, R](r: (A, B) => R): Property[(A, B), R] =
     apply(r.tupled)
+}
+
+object Main {
+  val p1 = Property((n: Int) => if(n > 200 && n < 10000000) false else n + 0 == n)
+  def main(args: Array[String]) {
+    val r = p1.check(100, Size(5))
+    println(r)
+  }
 }
 
 /*

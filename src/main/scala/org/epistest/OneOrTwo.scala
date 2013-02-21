@@ -115,6 +115,23 @@ sealed trait OneOrTwo[+A] {
       case None => x
       case Some(_) => this
     }
+
+  def show[AA >: A](implicit S: Show[AA]): Cord =
+    two match {
+      case None =>
+        "One(" +: S.show(one) :- ')'
+      case Some(t) =>
+        ("Two(" +: S.show(one) :+ ",") ++ S.show(t) :- ')'
+    }
+
+  def ===[AA >: A](o: OneOrTwo[AA])(implicit E: Equal[AA]): Boolean =
+    implicitly[Equal[(AA, Option[AA])]].contramap((_: OneOrTwo[AA]).pair) equal (this, o)
+
+  override def toString: String =
+    show(Show.showA).toString
+
+  override def equals(a: Any): Boolean =
+    a.isInstanceOf[OneOrTwo[_]] && ===(a.asInstanceOf[OneOrTwo[_]])(Equal.equalA)
 }
 
 object OneOrTwo extends OneOrTwoInstances {
