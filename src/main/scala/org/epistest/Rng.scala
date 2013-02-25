@@ -92,11 +92,11 @@ sealed trait Rng[+A] {
   def list1: Gen[NonEmptyList[A]] =
     Gen(s =>
       for {
+        z <- this
         n <- s.value match {
                case None => int
                case Some(y) => chooseInt(0, y)
              }
-        z <- this
         a <- fill(n)
       } yield nel(z, a)
     )
